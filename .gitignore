@@ -38,6 +38,7 @@ secrets.json
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 
-## ملفات Markdown — لا تُرفع للمستودع البعيد، باستثناء README.md
+## ملفات Markdown — لا تُرفع للمستودع البعيد، باستثناء README.md وCHANGELOG.md
 *.md
 !README.md
+!CHANGELOG.md
