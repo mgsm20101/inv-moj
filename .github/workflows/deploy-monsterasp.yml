@@ -1,0 +1,57 @@
+name: نشر WIMS على MonsterASP.NET
+
+# يعمل يدوياً فقط (workflow_dispatch) — لا نشر تلقائي عند كل push، تجنّباً لنشر
+# غير مقصود لبيئة الاستضافة العامة. شغّله من تبويب Actions في GitHub عند الحاجة.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: تجهيز .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: تجهيز Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: بناء واجهة Angular (production)
+        working-directory: wims-client
+        run: |
+          npm ci
+          npx ng build --configuration production
+
+      - name: نسخ واجهة Angular إلى wwwroot
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path src/WIMS.WebApi/wwwroot | Out-Null
+          Copy-Item wims-client/dist/wims-client/browser/* src/WIMS.WebApi/wwwroot -Recurse -Force
+
+      - name: استعادة الحزم (dotnet restore)
+        run: dotnet restore WIMS.slnx
+
+      - name: البناء (Release)
+        run: dotnet build WIMS.slnx --configuration Release --no-restore
+
+      - name: تشغيل الاختبارات
+        run: dotnet test WIMS.slnx --configuration Release --no-build
+
+      # نشر عادي بلا DeployOnBuild/WebDeploy — يتجنّب خلل MSB4006 المعروف
+      # (راجع DEPLOY-MonsterASP-AR.md) عبر فصل النشر عن خطوة الرفع.
+      - name: نشر framework-dependent (win-x86)
+        run: dotnet publish src/WIMS.WebApi -c Release --runtime win-x86 --self-contained false --output ./publish --no-restore
+
+      - name: رفع عبر WebDeploy
+        uses: rasmusbuchholdt/simply-web-deploy@2.2.0
+        with:
+          website-name: ${{ secrets.WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.SERVER_USERNAME }}
+          server-password: ${{ secrets.SERVER_PASSWORD }}
+          source-path: '\publish\'

@@ -19,6 +19,8 @@
 - `.gitignore`: استبعاد `*.publishSettings` (يحتوي كلمة مرور WebDeploy فعلية عند تنزيله من لوحة الاستضافة).
 - `appsettings.Production.json`: سلسلة اتصال قاعدة MSSQL الفعلية على MonsterASP (بدون كلمة المرور) و`AllowedHosts` مقيَّد بالدومين الفعلي `invmoj.runasp.net` — جاهزة تلقائياً في كل حزمة MonsterASP قادمة، تبقى فقط تعبئة كلمة المرور على الخادم.
 
+- `.github/workflows/deploy-monsterasp.yml`: نشر آلي اختياري (تشغيل يدوي عبر `workflow_dispatch`) إلى MonsterASP عبر GitHub Actions — SDK .NET 8 محدَّد بدقّة (يتفادى خلل SDK 10 محلياً)، بناء Angular، اختبارات، ثم رفع عبر `rasmusbuchholdt/simply-web-deploy` (بدل WebDeploy المدمج في MSBuild المعطوب). يتطلّب 4 أسرار GitHub يضيفها المستخدم بنفسه (موثَّقة في `DEPLOY-MonsterASP-AR.md`).
+
 ### أُصلح (توثيق)
 - `DEPLOY-MonsterASP-AR.md`: عُلِّمت طريقة "WebDeploy من سطر الأوامر" كمعطوبة حالياً — تُكرِّر خطأ `MSB4006: circular dependency` (تحقّقنا منه فعلياً على .NET SDK 10.0.202، وجرّبنا `dotnet msbuild -t:Publish` كبديل ولم يُصلحه). أصبحت FTP/File Manager الطريقة الموصى بها بدلاً منها.
 

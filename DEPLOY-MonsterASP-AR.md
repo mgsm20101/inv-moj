@@ -57,6 +57,37 @@
 > بدل CLI)، ملف [`MonsterASP.pubxml`](src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml) جاهز
 > ومُعدّ ببيانات موقعك (بدون كلمة المرور) لهذا الغرض بالضبط.
 
+### د) عبر GitHub Actions (بديل مُوصى به لتفادي خلل SDK محلياً)
+
+بما أن Runner جيت‌هَب بيستخدم .NET SDK 8 محدَّد بدقّة (مش SDK 10 اللي فيه خلل MSB4006)، وبما أن الخطوة دي بتفصل النشر (`dotnet publish` عادي بلا `DeployOnBuild`) عن خطوة الرفع (أكشن مستقل بيستخدم بروتوكول MSDeploy)، فبيتفادى نفس المشكلة تماماً.
+
+**المواصفات الفنية المطلوبة** (جاهزة بالفعل في [`.github/workflows/deploy-monsterasp.yml`](.github/workflows/deploy-monsterasp.yml)):
+
+| المتطلّب | القيمة |
+|---|---|
+| Runner | `windows-latest` |
+| إصدار .NET SDK | `8.0.x` (عبر `actions/setup-dotnet@v4`) |
+| Node.js | `20` (عبر `actions/setup-node@v4`، لبناء Angular) |
+| أمر النشر | `dotnet publish ... --runtime win-x86 --self-contained false --output ./publish` (بلا WebDeploy) |
+| أكشن الرفع | [`rasmusbuchholdt/simply-web-deploy@2.2.0`](https://github.com/rasmusbuchholdt/simply-web-deploy) |
+| التشغيل | يدوي فقط (`workflow_dispatch`) — لا نشر تلقائي عند كل push |
+
+**خطوات التفعيل (تعملها إنت بنفسك في GitHub، مش أنا):**
+
+1. ادفع (push) هذا المستودع إلى مستودع GitHub خاص (Private) بحسابك — كرّر: **خاص**، لأن المستودع فيه بنية النظام الداخلية.
+2. من صفحة المستودع على GitHub: **Settings → Secrets and variables → Actions → New repository secret**، وأضِف 4 أسرار (القيم من نفس ملف الـ `.publishSettings` اللي عندك):
+
+   | اسم الـ Secret | القيمة (من ملف publishSettings بتاعك) |
+   |---|---|
+   | `WEBSITE_NAME` | `site77694` |
+   | `SERVER_COMPUTER_NAME` | `https://site77694.siteasp.net:8172` |
+   | `SERVER_USERNAME` | `site77694` |
+   | `SERVER_PASSWORD` | كلمة مرور WebDeploy الحقيقية |
+
+3. من تبويب **Actions** في المستودع، افتح workflow "نشر WIMS على MonsterASP.NET" واضغط **Run workflow** يدوياً.
+
+> هذه الخطوات (الدفع لـ GitHub، وإضافة الأسرار) لازم تعملها إنت بنفسك — دخول حسابك على GitHub وإدخال كلمات مرور مش حاجة أقدر أو المفروض أعملها بدالك.
+
 ## الخطوة 4 — تعبئة الإعدادات الحسّاسة على الخادم مباشرة
 
 **هذه أهم خطوة — النظام لن يعمل بدونها عمداً (حارس أمني في الكود).**
