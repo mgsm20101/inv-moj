@@ -14,13 +14,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ## [Unreleased]
 
+---
+
+## [1.1.0] — 2026-07-04
+
 ### Fixed
 - `SecurityHeadersMiddleware`: the Content-Security-Policy header was `default-src 'none'`, written back when the API served JSON only. Once the Angular SPA started being served from the same origin (`wwwroot`), this silently blocked every script, stylesheet, and image on the live MonsterASP deployment — the site loaded `index.html` but rendered a blank page. Relaxed to `default-src 'self'` (+ `style-src 'unsafe-inline'` for Angular's inlined critical CSS), still same-origin-only with no external CDNs allowed.
 - `wims-client/angular.json`: production builds render broken/unstyled UI (giant unstyled SVG icons, e.g. the login button) even after the CSP fix above. Root cause: Angular's default critical-CSS optimization injects the real stylesheet as `<link ... media="print" onload="this.media='all'">` — an inline event handler, which `script-src 'self'` (correctly) blocks, so the stylesheet's `media` never flips to `all` and the whole external stylesheet (all component styles, e.g. `.btn__icon`) never actually applies on screen. Disabled `inlineCritical` in the `styles` optimization option instead of loosening the CSP further — verified locally that the built `index.html` no longer contains any `onload` attribute and `.btn__icon` now only exists in the plain, normally-loaded stylesheet.
 - `wims-client/angular.json`: login (and every other API call) failed on the live site with a CSP `connect-src 'self'` violation trying to reach `http://localhost:5021/api/...` — the production build was still using the dev `environment.ts` (`apiBaseUrl: 'http://localhost:5021/api'`) instead of `environment.prod.ts` (`apiBaseUrl: '/api'`), because the `production` build configuration never had a `fileReplacements` entry at all. Added it. Verified locally: `localhost:5021` no longer appears anywhere in the built output.
 
 ### Added
+- **Master-data management screen** (`wims-client/src/app/features/master-data/`): a new "البيانات الأساسية" section (single page, four tabs — warehouses, employees, categories, units of measure) that finally exposes list + add + edit UI for these reference entities, which previously existed only as read-only dropdowns inside other screens. Mirrors the admin screen's tabbed pattern; each entity has a `<dialog>` editor. Tabs, add and edit buttons are gated by RBAC (`Warehouses.*`, `Employees.*`, `Items.*`). Added a `/master-data` route (guarded) and a sidebar nav entry.
+- **Backend update endpoints** for the four reference entities so the new screen can edit them: `PUT /api/warehouses/{id}` + `GET /api/warehouses/{id}` (detail incl. `KeeperUserId`), `PUT /api/employees/{id}` + `GET /api/employees/{id}` (full detail), `PUT /api/categories/{id}`, and `PUT /api/units/{id}`. Each is a new CQRS `Update*Command` (record + validator + handler) mirroring the existing `Create*` pattern; identifying fields (`Code`, `EmployeeNo`, `NationalId`) are immutable. `CategoryDto` now also carries `SortOrder`. No schema change / no migration — reuses existing `Warehouses.Manage` / `Employees.Manage` / `Items.Manage` permissions.
 - `src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml`: WebDeploy publish profile (non-secret data only) + a new section in `DEPLOY-MonsterASP-AR.md` for direct command-line deployment via `dotnet publish /p:DeployOnBuild=true`.
+
+### Changed
+- The sidebar footer badge now shows the app version (e.g. "الإصدار 1.1.0", read live from `wims-client/package.json`) instead of the static "بيئة التطوير" label.
 - `.gitignore`: excluded `*.publishSettings` (contains a real WebDeploy password when downloaded from the hosting control panel).
 - `appsettings.Production.json`: the real MonsterASP MSSQL connection string (without the password) and `AllowedHosts` restricted to the actual domain `invmoj.runasp.net` — automatically included in every future MonsterASP package; only the password needs to be filled in on the server.
 - `.github/workflows/deploy-monsterasp.yml`: optional automated deployment (manual `workflow_dispatch` trigger) to MonsterASP via GitHub Actions — builds Angular, runs tests, then deploys via `rasmusbuchholdt/simply-web-deploy` (instead of MSBuild's broken built-in WebDeploy). Requires 4 GitHub secrets the user adds themselves (documented in `DEPLOY-MonsterASP-AR.md`).
