@@ -23,6 +23,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 ### Fixed (documentation)
 - `DEPLOY-MonsterASP-AR.md`: flagged the "WebDeploy from the command line" method as currently broken — it reproducibly throws `MSB4006: circular dependency` (verified firsthand on .NET SDK 10.0.202; tried `dotnet msbuild -t:Publish` as a workaround and it didn't fix it either). FTP/File Manager is now the recommended method instead.
 
+### Fixed
+- `.github/workflows/deploy-monsterasp.yml`: the publish step failed in CI with `NETSDK1047: ... doesn't have a target for 'net8.0/win-x86'` — caused by `--no-restore` on a step that needs a win-x86-specific restore the earlier RID-less `dotnet restore` step never produced. Removed `--no-restore` from that step. Also added a job-local (not committed) `global.json` pinning SDK 8.0.x, since `windows-latest` runners ship multiple preinstalled SDKs (including a 10.x) and without a `global.json` the ambient highest version wins regardless of `actions/setup-dotnet` — this was silently running the publish step on SDK 10.0.301 instead of the intended 8.0.x.
+
 ### Other
 - `.gitignore`: excluded all Markdown files (`*.md`) from the remote repository except `README.md` and `CHANGELOG.md` (per user request) — `CLAUDE.md` and the planning/deployment docs are now local-only (no longer tracked in Git).
 - `README.md`: fully rewritten to reflect the project's actual current state (it was previously stuck describing the old Phase 0-1 status).

@@ -16,6 +16,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      # صورة windows-latest فيها SDKs متعددة مثبَّتة مسبقاً (بينها SDK 10 الأحدث)، وبما إن
+      # المستودع بلا global.json، دوتنت بيختار الأحدث المتاح تلقائياً متجاهلاً setup-dotnet
+      # أعلاه — وده سبب ظهور "sdk\10.0.301" في اللوج رغم طلب 8.0.x صراحةً. نكتب global.json
+      # هنا فقط (غير مُلتزَم بالمستودع نفسه، عشان الجهاز المحلي بلا SDK 8 مثبَّت) لتثبيت
+      # قرار الإصدار داخل هذا الـ job بس.
+      - name: تثبيت SDK 8 لهذا الـ job فقط (لا يُلتزم بالمستودع)
+        shell: pwsh
+        run: |
+          '{"sdk":{"version":"8.0.100","rollForward":"latestMinor"}}' | Out-File -FilePath global.json -Encoding utf8
+          Get-Content global.json
+
       - name: تجهيز Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,8 +55,11 @@ jobs:
 
       # نشر عادي بلا DeployOnBuild/WebDeploy — يتجنّب خلل MSB4006 المعروف
       # (راجع DEPLOY-MonsterASP-AR.md) عبر فصل النشر عن خطوة الرفع.
+      # ملحوظة: بلا --no-restore عمداً — الاستعادة الأولى (خطوة "استعادة الحزم") كانت
+      # بلا RID، فما فيهاش أصول win-x86؛ هنا لازم استعادة جديدة خاصة بـ win-x86
+      # (NETSDK1047 لو اتشالت).
       - name: نشر framework-dependent (win-x86)
-        run: dotnet publish src/WIMS.WebApi -c Release --runtime win-x86 --self-contained false --output ./publish --no-restore
+        run: dotnet publish src/WIMS.WebApi -c Release --runtime win-x86 --self-contained false --output ./publish
 
       - name: رفع عبر WebDeploy
         uses: rasmusbuchholdt/simply-web-deploy@2.2.0
