@@ -18,9 +18,11 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next, IHostEnviron
         headers["X-Permitted-Cross-Domain-Policies"] = "none";
         // موارد من نفس المصدر فقط (لا CDN خارجي) — style-src يسمح بـ unsafe-inline
         // لأن Angular يُضمِّن CSS حرِج inline افتراضياً عند البناء production.
+        // img-src يسمح بـ blob: لأن صور المستخدمين/الأفاتار تُعرض عبر Object URLs
+        // (blob:) بعد جلبها كـ Blob مع تمرير التوكن.
         headers["Content-Security-Policy"] =
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-            "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; " +
+            "img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; " +
             "frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
         // في الإنتاج فقط (خلف TLS): افرض HTTPS لمدة سنة.

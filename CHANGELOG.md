@@ -16,6 +16,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ---
 
+## [1.2.2] — 2026-07-05
+
+### Fixed
+- **User photos/avatars not displaying in production (CSP)**: `SecurityHeadersMiddleware` set `img-src 'self' data:`, which blocked the `blob:` object-URLs used to render user photos and avatars (images are fetched as blobs so the JWT is passed). They worked on the Angular dev server (no CSP applied) but the browser silently blocked them on the deployed site — the image looked "missing". Added `blob:` to `img-src`.
+
+---
+
 ## [1.2.1] — 2026-07-04
 
 ### Changed
