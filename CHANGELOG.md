@@ -17,6 +17,7 @@
 ### أُضيف
 - `src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml`: ملف نشر WebDeploy (بيانات غير سرّية فقط) + قسم جديد في `DEPLOY-MonsterASP-AR.md` للنشر المباشر من سطر الأوامر عبر `dotnet publish /p:DeployOnBuild=true`.
 - `.gitignore`: استبعاد `*.publishSettings` (يحتوي كلمة مرور WebDeploy فعلية عند تنزيله من لوحة الاستضافة).
+- `appsettings.Production.json`: سلسلة اتصال قاعدة MSSQL الفعلية على MonsterASP (بدون كلمة المرور) و`AllowedHosts` مقيَّد بالدومين الفعلي `invmoj.runasp.net` — جاهزة تلقائياً في كل حزمة MonsterASP قادمة، تبقى فقط تعبئة كلمة المرور على الخادم.
 
 ---
 
