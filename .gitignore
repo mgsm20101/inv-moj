@@ -37,3 +37,7 @@ secrets.json
 ## حالة Claude Code المحلية (خاصة بالجلسة/الجهاز — ليست جزءاً من المشروع)
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+## ملفات Markdown — لا تُرفع للمستودع البعيد، باستثناء README.md
+*.md
+!README.md
