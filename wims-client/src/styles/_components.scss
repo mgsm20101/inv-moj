@@ -148,6 +148,33 @@
 }
 .badge__dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 
+// ---- زر أيقونة (إغلاق النوافذ المنبثقة …) ----
+// يُعرَّف عالميًا لأن مكوّنات النوافذ المستقلة (محرّرات المخازن/الوحدات/الأصناف…)
+// تستخدم .iconbtn بينما كان التنسيق محصورًا في مكوّنات بعينها (View Encapsulation)،
+// فكان رمز الإغلاق يظهر بلا تنسيق. راجع ملاحظات العميل.
+.iconbtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+  &:hover { background: var(--hover-tint); }
+  svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
 .badge--approved { background: var(--justice-soft); color: #14503f;
   .badge__dot { background: var(--justice); } }
 .badge--pending { background: var(--warning-soft); color: #7a5211;

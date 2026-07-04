@@ -136,21 +136,19 @@
             <th>الرقم الوظيفي</th>
             <th>الاسم</th>
             <th>الإدارة</th>
-            <th>مركز التكلفة</th>
             <th>الحالة</th>
             @if (canManageEmployees) { <th class="ta-end">إجراءات</th> }
           </tr>
         </thead>
         <tbody>
           @if (employeesLoading()) {
-            <tr><td [attr.colspan]="canManageEmployees ? 6 : 5" class="cell-note">جارِ التحميل…</td></tr>
+            <tr><td [attr.colspan]="canManageEmployees ? 5 : 4" class="cell-note">جارِ التحميل…</td></tr>
           } @else {
             @for (e of employees() ?? []; track e.id) {
               <tr>
                 <td class="num code">{{ e.employeeNo }}</td>
                 <td>{{ e.fullNameAr }}</td>
                 <td>{{ e.department }}</td>
-                <td class="num muted">{{ e.costCenter }}</td>
                 <td>
                   <span [class]="'badge ' + empStatusBadge(e.status)">
                     <span class="badge__dot"></span>{{ empStatusLabel(e.status) }}

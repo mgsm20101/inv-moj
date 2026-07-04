@@ -55,7 +55,6 @@ export interface EmployeeDto {
   nationalId: string;
   fullNameAr: string;
   department: string;
-  costCenter: string;
   email: string | null;
   status: EmployeeStatus;
 }

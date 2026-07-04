@@ -12,7 +12,6 @@ public class Employee : BaseEntity
     public string? FullNameEn { get; set; }
     public string Department { get; set; } = string.Empty;
     public string? JobTitle { get; set; }
-    public string CostCenter { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? Phone { get; set; }
 

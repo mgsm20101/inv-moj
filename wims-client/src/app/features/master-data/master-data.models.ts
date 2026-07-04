@@ -69,7 +69,6 @@ export interface EmployeeDetailDto {
   fullNameEn: string | null;
   department: string;
   jobTitle: string | null;
-  costCenter: string;
   email: string | null;
   phone: string | null;
   userId: string | null;
@@ -83,7 +82,6 @@ export interface CreateEmployeeRequest {
   fullNameEn?: string | null;
   department: string;
   jobTitle?: string | null;
-  costCenter: string;
   email?: string | null;
   phone?: string | null;
   userId?: string | null;
@@ -94,7 +92,6 @@ export interface UpdateEmployeeRequest {
   fullNameEn?: string | null;
   department: string;
   jobTitle?: string | null;
-  costCenter: string;
   email?: string | null;
   phone?: string | null;
   userId?: string | null;

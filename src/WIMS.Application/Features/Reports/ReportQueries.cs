@@ -122,15 +122,16 @@ public sealed class ItemCardReportQueryHandler(IAppDbContext db)
             .OrderBy(t => t.TransactionNo)
             .Select(t => new
             {
-                t.PostedAt, t.TransactionNo, t.TxnType, t.Direction,
+                t.PostedAt, DocDate = t.Voucher.DocumentDate, t.TransactionNo, t.TxnType, t.Direction,
                 VoucherNo = t.Voucher.VoucherNo, WhName = t.Warehouse.NameAr,
                 t.Qty, t.QtyOnHandAfter, t.WacAfter,
             })
             .ToListAsync(ct);
 
+        // تاريخ الإذن المرجعي إن وُجد، وإلا تاريخ الترحيل (للحركات القديمة قبل إضافة الحقل).
         var rows = data.Select(d => (IReadOnlyList<string>)new[]
         {
-            Fmt.Date(d.PostedAt),
+            d.DocDate is { } dd ? Fmt.Date(dd) : Fmt.Date(d.PostedAt),
             d.TransactionNo.ToString(CultureInfo.InvariantCulture),
             TxnNames.GetValueOrDefault(d.TxnType, d.TxnType.ToString()),
             d.VoucherNo,

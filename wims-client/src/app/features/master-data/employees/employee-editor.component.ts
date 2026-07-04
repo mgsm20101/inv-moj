@@ -18,7 +18,7 @@ import { MasterDataService } from '../master-data.service';
 
 /**
  * محرّر موظف — حوار &lt;dialog&gt; أصلي للإنشاء والتعديل.
- * الرقم الوظيفي والهوية الوطنية غير قابلين للتعديل. الربط بحساب مستخدم اختياري.
+ * الرقم الوظيفي والرقم القومي غير قابلين للتعديل. الربط بحساب مستخدم اختياري.
  */
 @Component({
   selector: 'wims-employee-editor',
@@ -45,12 +45,11 @@ export class EmployeeEditorComponent implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     employeeNo: ['', [Validators.required, Validators.maxLength(20)]],
-    nationalId: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+    nationalId: ['', [Validators.required, Validators.pattern(/^\d{14}$/)]],
     fullNameAr: ['', [Validators.required, Validators.maxLength(150)]],
     fullNameEn: ['', [Validators.maxLength(150)]],
     department: ['', [Validators.required, Validators.maxLength(120)]],
     jobTitle: [''],
-    costCenter: ['', [Validators.required, Validators.maxLength(30)]],
     email: ['', [Validators.email]],
     phone: [''],
     userId: [''],
@@ -94,7 +93,6 @@ export class EmployeeEditorComponent implements OnInit {
           fullNameEn: e.fullNameEn ?? '',
           department: e.department,
           jobTitle: e.jobTitle ?? '',
-          costCenter: e.costCenter,
           email: e.email ?? '',
           phone: e.phone ?? '',
           userId: e.userId ?? '',
@@ -125,7 +123,6 @@ export class EmployeeEditorComponent implements OnInit {
       fullNameEn: raw.fullNameEn.trim() || null,
       department: raw.department,
       jobTitle: raw.jobTitle.trim() || null,
-      costCenter: raw.costCenter,
       email: raw.email.trim() || null,
       phone: raw.phone.trim() || null,
       userId: raw.userId || null,

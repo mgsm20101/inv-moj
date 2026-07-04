@@ -30,12 +30,12 @@
         </div>
 
         <div class="field">
-          <label class="field__label" for="emp-nid">الهوية الوطنية<span class="req">*</span></label>
+          <label class="field__label" for="emp-nid">الرقم القومي<span class="req">*</span></label>
           <input id="emp-nid" class="input" formControlName="nationalId" dir="ltr"
             inputmode="numeric" autocomplete="off"
             [class.is-invalid]="f.nationalId.invalid && f.nationalId.touched" />
           @if (f.nationalId.invalid && f.nationalId.touched) {
-            <span class="field__error">الهوية يجب أن تكون 10 أرقام.</span>
+            <span class="field__error">الرقم القومي يجب أن يكون 14 رقمًا.</span>
           } @else if (!isNew()) {
             <span class="field__hint">غير قابلة للتعديل.</span>
           }
@@ -65,15 +65,6 @@
             [class.is-invalid]="f.department.invalid && f.department.touched" />
           @if (f.department.invalid && f.department.touched) {
             <span class="field__error">الإدارة مطلوبة.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="emp-cc">مركز التكلفة<span class="req">*</span></label>
-          <input id="emp-cc" class="input" formControlName="costCenter" dir="ltr"
-            [class.is-invalid]="f.costCenter.invalid && f.costCenter.touched" />
-          @if (f.costCenter.invalid && f.costCenter.touched) {
-            <span class="field__error">مركز التكلفة مطلوب.</span>
           }
         </div>
       </div>

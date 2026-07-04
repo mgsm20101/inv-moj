@@ -82,6 +82,18 @@
   display: grid; place-items: center; width: 56px; height: 56px; flex: none;
   border-radius: 50%; background: var(--ink); color: var(--text-on-dark);
   font-size: var(--fs-h1); font-weight: var(--fw-semibold);
+  object-fit: cover;
+}
+
+// صورة/أفاتار المستخدم داخل خلية الجدول
+.cell-user { display: inline-flex; align-items: center; gap: var(--space-sm); }
+.cell-user__avatar {
+  width: 30px; height: 30px; flex: none; border-radius: 50%; object-fit: cover;
+  border: 1px solid var(--border);
+}
+.cell-user__avatar--ph {
+  display: grid; place-items: center; border: none;
+  background: var(--justice-soft); color: #14503f; font-weight: var(--fw-semibold);
 }
 .identity__body { flex: 1; min-width: 0; }
 .identity__name { font-size: var(--fs-h1); font-family: var(--font-doc); }

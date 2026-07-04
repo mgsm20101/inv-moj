@@ -54,6 +54,20 @@ export class AdminService {
     return this.http.put<void>(`${this.base}/users/${id}/roles`, { roleIds });
   }
 
+  /** رفع صورة المستخدم (multipart). */
+  uploadUserPhoto(id: string, file: File): Observable<void> {
+    const data = new FormData();
+    data.append('file', file);
+    return this.http.post<void>(`${this.base}/users/${id}/photo`, data);
+  }
+
+  /** صورة المستخدم كـ Blob (لعرضها عبر ObjectURL مع تمرير التوكن). */
+  getUserPhoto(id: string): Observable<Blob> {
+    return this.http.get(`${this.base}/users/${id}/photo`, {
+      responseType: 'blob',
+    });
+  }
+
   // ---- الأدوار ----
   getRoles(): Observable<RoleSummary[]> {
     return this.http.get<RoleSummary[]>(`${this.base}/roles`);

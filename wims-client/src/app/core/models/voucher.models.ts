@@ -110,11 +110,11 @@ export interface VoucherDetailDto {
   toWarehouseId: string | null;
   supplierId: string | null;
   transferStatus: TransferStatus | null;
-  costCenter: string | null;
   reason: string | null;
   createdBy: string | null;
   approvedBy: string | null;
   postedAt: string | null;
+  documentDate: string | null;
   lines: VoucherLineDto[];
 }
 
@@ -142,7 +142,7 @@ export interface CreateVoucherCommand {
   supplierId?: string | null;
   sourceVoucherId?: string | null;
   referenceNo?: string | null;
-  costCenter?: string | null;
+  documentDate?: string | null;
   requestingDept?: string | null;
   reason?: string | null;
   recipientEmployeeId?: string | null;

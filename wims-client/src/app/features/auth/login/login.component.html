@@ -2,31 +2,37 @@
   <!-- لوحة الهوية الرسمية (الحبر + الختم) -->
   <aside class="login__brand" aria-hidden="false">
     <div class="brand__inner">
-      <!-- الختم الرسمي: الموتيف التوقيعي الوحيد، بلون براس الختم -->
+      <!-- الشعار الرسمي: شعار وزارة العدل المرفوع، ويسقط للختم المرسوم إن غاب الملف -->
       <div class="seal" aria-hidden="true">
-        <svg viewBox="0 0 120 120" role="presentation">
-          <circle class="seal__ring" cx="60" cy="60" r="54" />
-          <circle class="seal__ring seal__ring--inner" cx="60" cy="60" r="44" />
-          <g class="seal__scale">
-            <line x1="60" y1="40" x2="60" y2="78" />
-            <line x1="42" y1="52" x2="78" y2="52" />
-            <path d="M42 52 L34 66 A9 9 0 0 0 50 66 Z" />
-            <path d="M78 52 L70 66 A9 9 0 0 0 86 66 Z" />
-            <line x1="50" y1="80" x2="70" y2="80" />
-          </g>
-        </svg>
+        @if (logoOk()) {
+          <img class="seal__img" src="logo.png" alt="شعار وزارة العدل"
+            (error)="logoOk.set(false)" />
+        } @else {
+          <svg viewBox="0 0 120 120" role="presentation">
+            <circle class="seal__ring" cx="60" cy="60" r="54" />
+            <circle class="seal__ring seal__ring--inner" cx="60" cy="60" r="44" />
+            <g class="seal__scale">
+              <line x1="60" y1="40" x2="60" y2="78" />
+              <line x1="42" y1="52" x2="78" y2="52" />
+              <path d="M42 52 L34 66 A9 9 0 0 0 50 66 Z" />
+              <path d="M78 52 L70 66 A9 9 0 0 0 86 66 Z" />
+              <line x1="50" y1="80" x2="70" y2="80" />
+            </g>
+          </svg>
+        }
       </div>
 
       <p class="brand__ministry doc-type">وزارة العدل</p>
-      <h1 class="brand__wordmark">WIMS</h1>
-      <p class="brand__system">نظام إدارة المخازن والمخزون</p>
-
       <p class="brand__note">
         قطاع التطوير التقني ومركز المعلومات القضائي
       </p>
+      <p class="brand__system">نظام إدارة المخازن والمخزون</p>
+      <h1 class="brand__wordmark">WIMS</h1>
     </div>
 
-    <p class="brand__foot">سجلٌّ رسمي · دخول موثّق</p>
+    <p class="brand__foot">
+      © {{ year }} جميع الحقوق محفوظة لقطاع التطوير التقني ومركز المعلومات القضائي — وزارة العدل
+    </p>
   </aside>
 
   <!-- لوحة النموذج -->
@@ -34,7 +40,6 @@
     <div class="panel__card">
       <header class="panel__head">
         <h2>تسجيل الدخول</h2>
-        <p class="panel__sub">أدخل بيانات اعتمادك للمتابعة إلى النظام.</p>
       </header>
 
       @if (serverError()) {

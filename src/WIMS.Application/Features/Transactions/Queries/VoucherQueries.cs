@@ -20,7 +20,7 @@ public sealed record VoucherDto(
 public sealed record VoucherDetailDto(
     Guid Id, string VoucherNo, VoucherType VoucherType, VoucherStatus Status,
     Guid WarehouseId, Guid? ToWarehouseId, Guid? SupplierId, TransferStatus? TransferStatus,
-    string? CostCenter, string? Reason, string? CreatedBy, string? ApprovedBy, DateTime? PostedAt,
+    string? Reason, string? CreatedBy, string? ApprovedBy, DateTime? PostedAt, DateOnly? DocumentDate,
     IReadOnlyList<VoucherLineDto> Lines);
 
 // ─────────────────────── قائمة السندات ───────────────────────
@@ -65,7 +65,7 @@ public sealed class GetVoucherByIdHandler(IAppDbContext db)
             .Where(x => x.Id == request.Id)
             .Select(x => new VoucherDetailDto(
                 x.Id, x.VoucherNo, x.VoucherType, x.Status, x.WarehouseId, x.ToWarehouseId, x.SupplierId,
-                x.TransferStatus, x.CostCenter, x.Reason, x.CreatedBy, x.ApprovedBy, x.PostedAt,
+                x.TransferStatus, x.Reason, x.CreatedBy, x.ApprovedBy, x.PostedAt, x.DocumentDate,
                 x.Lines.OrderBy(l => l.LineNo).Select(l => new VoucherLineDto(
                     l.LineNo, l.ItemId, l.Item.ItemCode, l.Qty, l.QtyAccepted, l.QtyRejected,
                     l.BatchNo, l.SerialNo, l.ExpiryDate, l.UnitCost)).ToList()))

@@ -18,6 +18,28 @@
 
     <form class="editor__body" [formGroup]="form" (ngSubmit)="submit()">
       <div class="field">
+        <span class="field__label">الصورة الشخصية</span>
+        <div class="photo-pick">
+          @if (photoPreview()) {
+            <img class="photo-pick__img" [src]="photoPreview()" alt="صورة المستخدم" />
+          } @else {
+            <span class="photo-pick__ph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+            </span>
+          }
+          <label class="btn btn--secondary photo-pick__btn">
+            اختيار صورة
+            <input type="file" accept="image/png,image/jpeg,image/webp" hidden
+              (change)="onPhotoSelected($event)" />
+          </label>
+        </div>
+        <span class="field__hint">JPEG أو PNG أو WebP، بحد أقصى 2 ميجابايت.</span>
+      </div>
+
+      <div class="field">
         <label class="field__label" for="ue-userName">
           اسم الدخول<span class="req">*</span>
         </label>
