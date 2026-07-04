@@ -1,0 +1,176 @@
+<header class="page-head">
+  <div>
+    <h1>التقارير</h1>
+    <p class="page-head__sub">تقارير المخزون والعُهد والجرد — عرض وتصدير PDF/Excel.</p>
+  </div>
+</header>
+
+<div class="rep-grid">
+  <!-- منتقي التقرير -->
+  <aside class="rep-list" role="tablist" aria-label="أنواع التقارير">
+    @for (r of reports; track r.key) {
+      <button type="button" class="rep-item" role="tab"
+        [class.is-active]="selected().key === r.key"
+        [attr.aria-selected]="selected().key === r.key"
+        (click)="pick(r)">
+        <span class="rep-item__title">{{ r.title }}</span>
+        <span class="rep-item__desc">{{ r.desc }}</span>
+      </button>
+    }
+  </aside>
+
+  <!-- الفلاتر + النتيجة -->
+  <section class="rep-main">
+    <div class="card filters">
+      <div class="card__header"><h2>{{ selected().title }}</h2></div>
+      <div class="card__body">
+        <div class="filter-row">
+          @if (selected().needsWarehouse) {
+            <div class="field field--inline">
+              <label class="field__label" for="wh">المخزن</label>
+              <select id="wh" class="input" name="wh" [(ngModel)]="warehouseId">
+                <option value="">كل المخازن</option>
+                @for (w of warehouses(); track w.id) {
+                  <option [value]="w.id">{{ w.nameAr }} ({{ w.code }})</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (selected().needsDays) {
+            <div class="field field--inline">
+              <label class="field__label" for="days">عتبة الركود (يوم)</label>
+              <input id="days" class="input num" type="number" min="1" name="days" [(ngModel)]="days" />
+            </div>
+          }
+
+          @if (selected().needsOnlyInStock) {
+            <label class="check">
+              <input type="checkbox" name="onlyInStock" [(ngModel)]="onlyInStock" />
+              الأصناف ذات الرصيد فقط
+            </label>
+          }
+
+          @if (selected().needsDates) {
+            <div class="field field--inline">
+              <label class="field__label" for="from">من تاريخ</label>
+              <input id="from" class="input num" type="date" name="from" [(ngModel)]="from" />
+            </div>
+            <div class="field field--inline">
+              <label class="field__label" for="to">إلى تاريخ</label>
+              <input id="to" class="input num" type="date" name="to" [(ngModel)]="to" />
+            </div>
+          }
+
+          @if (selected().needsStockCount) {
+            <div class="field field--inline field--grow">
+              <label class="field__label" for="sc">محضر الجرد<span class="req">*</span></label>
+              <select id="sc" class="input" name="sc" [(ngModel)]="selectedStockCountId">
+                <option value="">اختر محضراً…</option>
+                @for (c of stockCounts(); track c.id) {
+                  <option [value]="c.id">
+                    {{ c.countNo }} — {{ countTypeLabel[c.countType] }} ({{ countStatusLabel[c.status] }})
+                  </option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+
+        <!-- بحث موظف (اختياري) -->
+        @if (selected().needsEmployee) {
+          <div class="picker">
+            <div class="field">
+              <label class="field__label" for="empSearch">الموظف (اتركه فارغاً لكل الموظفين)</label>
+              <input id="empSearch" class="input" type="search" [formControl]="empSearch"
+                placeholder="ابحث بالاسم أو الرقم…" autocomplete="off" />
+            </div>
+            @if (empResults().length) {
+              <ul class="results">
+                @for (e of empResults(); track e.id) {
+                  <li><button type="button" class="result-row" (click)="chooseEmployee(e)">
+                    <span class="num">{{ e.employeeNo }}</span> — {{ e.fullNameAr }}
+                    <span class="rsub">{{ e.department }}</span>
+                  </button></li>
+                }
+              </ul>
+            }
+            @if (selectedEmployee()) {
+              <button type="button" class="clear-sel" (click)="chooseEmployee(null)">إلغاء تحديد الموظف ×</button>
+            }
+          </div>
+        }
+
+        <!-- بحث صنف (إجباري) -->
+        @if (selected().needsItem) {
+          <div class="picker">
+            <div class="field">
+              <label class="field__label" for="itemSearch">الصنف<span class="req">*</span></label>
+              <input id="itemSearch" class="input" type="search" [formControl]="itemSearch"
+                placeholder="ابحث بالكود أو الاسم…" autocomplete="off" />
+            </div>
+            @if (itemResults().length) {
+              <ul class="results">
+                @for (it of itemResults(); track it.id) {
+                  <li><button type="button" class="result-row" (click)="chooseItem(it)">
+                    <span class="num">{{ it.itemCode }}</span> — {{ it.nameAr }}
+                  </button></li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        <div class="filter-actions">
+          <button class="btn btn--primary" (click)="run()"
+            [class.is-loading]="loading()" [disabled]="loading() || !canRun()">
+            @if (loading()) { <span class="spinner" aria-hidden="true"></span> }
+            <span class="btn__label">عرض التقرير</span>
+          </button>
+          <div class="filter-actions__spacer"></div>
+          <button class="btn btn--secondary" (click)="exportAs('pdf')"
+            [class.is-loading]="exporting() === 'pdf'" [disabled]="!canRun() || exporting() !== null">
+            @if (exporting() === 'pdf') { <span class="spinner" aria-hidden="true"></span> }
+            <span class="btn__label">تصدير PDF</span>
+          </button>
+          <button class="btn btn--secondary" (click)="exportAs('excel')"
+            [class.is-loading]="exporting() === 'excel'" [disabled]="!canRun() || exporting() !== null">
+            @if (exporting() === 'excel') { <span class="spinner" aria-hidden="true"></span> }
+            <span class="btn__label">تصدير Excel</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert--error" role="alert">
+        <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+          <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+        </svg>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="card"><div class="card__body loading-row">
+        <span class="spinner" aria-hidden="true"></span> جارِ توليد التقرير…
+      </div></div>
+    } @else if (doc()) {
+      <section class="card result">
+        <div class="card__body">
+          <wims-report-document [doc]="doc()!" />
+        </div>
+      </section>
+    } @else if (!error()) {
+      <div class="card"><div class="card__body prompt">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+          stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 5h16M4 12h10M4 19h6" />
+        </svg>
+        <p>اختر تقريراً واضبط الفلاتر ثم اضغط «عرض التقرير».</p>
+      </div></div>
+    }
+  </section>
+</div>

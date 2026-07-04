@@ -1,0 +1,251 @@
+<header class="page-head">
+  <div>
+    <h1>الإدارة والصلاحيات</h1>
+    <p class="page-head__sub">إدارة المستخدمين والأدوار والصلاحيات (RBAC).</p>
+  </div>
+</header>
+
+<!-- التبويبات -->
+<nav class="segbar" aria-label="أقسام الإدارة">
+  @if (canViewUsers) {
+    <button type="button" class="seg" [class.is-active]="tab() === 'users'"
+      (click)="setTab('users')">المستخدمون</button>
+  }
+  @if (canViewRoles) {
+    <button type="button" class="seg" [class.is-active]="tab() === 'roles'"
+      (click)="setTab('roles')">الأدوار</button>
+  }
+  <button type="button" class="seg" [class.is-active]="tab() === 'permissions'"
+    (click)="setTab('permissions')">صلاحياتي</button>
+</nav>
+
+<!-- ======================= المستخدمون ======================= -->
+@if (tab() === 'users') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>المستخدمون</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadUsers()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Users.Manage'"
+          (click)="openNewUser()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">مستخدم جديد</span>
+        </button>
+      </div>
+    </div>
+
+    @if (usersError()) {
+      <div class="alert alert--error" role="alert">{{ usersError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>اسم الدخول</th>
+            <th>الاسم الكامل</th>
+            <th>الأدوار</th>
+            <th>الحالة</th>
+            @if (canManageUsers) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (usersLoading()) {
+            <tr><td [attr.colspan]="canManageUsers ? 5 : 4" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (u of users() ?? []; track u.id) {
+              <tr>
+                <td class="num code">{{ u.userName }}</td>
+                <td>{{ u.fullName }}</td>
+                <td>
+                  <span class="rolechips">
+                    @for (r of u.roles; track r) { <span class="chip">{{ r }}</span> }
+                    @if (u.roles.length === 0) { <span class="chip chip--none">—</span> }
+                  </span>
+                </td>
+                <td>
+                  @if (u.isActive) {
+                    <span class="badge badge--approved"><span class="badge__dot"></span>نشط</span>
+                  } @else {
+                    <span class="badge badge--draft"><span class="badge__dot"></span>معطّل</span>
+                  }
+                </td>
+                @if (canManageUsers) {
+                  <td class="ta-end">
+                    <button type="button" class="btn btn--secondary btn--sm"
+                      *appHasPermission="'Users.Manage'" (click)="openEditUser(u.id)">تحرير</button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!usersLoading() && (users()?.length ?? 0) === 0 && !usersError()) {
+        <p class="cell-note cell-note--empty">لا يوجد مستخدمون.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingUserId() !== undefined) {
+    <wims-user-editor [userId]="editingUserId()!" (closed)="closeUserEditor($event)" />
+  }
+}
+
+<!-- ======================= الأدوار ======================= -->
+@if (tab() === 'roles') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>الأدوار</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadRolesAndPerms()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Roles.Manage'"
+          (click)="openNewRole()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">دور جديد</span>
+        </button>
+      </div>
+    </div>
+
+    @if (rolesError()) {
+      <div class="alert alert--error" role="alert">{{ rolesError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الدور</th>
+            <th>الوصف</th>
+            <th class="ta-end">عدد الصلاحيات</th>
+            <th class="ta-end">عدد المستخدمين</th>
+            @if (canManageRoles) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (rolesLoading()) {
+            <tr><td [attr.colspan]="canManageRoles ? 5 : 4" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (r of roles() ?? []; track r.id) {
+              <tr>
+                <td>
+                  <span class="rolename">{{ r.name }}</span>
+                  @if (r.isSystem) {
+                    <span class="lock" title="دور نظامي محمي" aria-label="دور نظامي">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+                        stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                      </svg>
+                    </span>
+                  }
+                </td>
+                <td class="muted">{{ r.description || '—' }}</td>
+                <td class="num ta-end">{{ r.permissionCount }}</td>
+                <td class="num ta-end">{{ r.userCount }}</td>
+                @if (canManageRoles) {
+                  <td class="ta-end">
+                    <div class="row-actions" *appHasPermission="'Roles.Manage'">
+                      <button type="button" class="btn btn--secondary btn--sm" (click)="openEditRole(r.id)">
+                        {{ r.isSystem ? 'عرض' : 'تحرير' }}
+                      </button>
+                      <button type="button" class="btn btn--danger btn--sm"
+                        [disabled]="r.isSystem"
+                        [attr.title]="r.isSystem ? 'دور نظامي — لا يُحذف' : null"
+                        (click)="requestDeleteRole(r)">حذف</button>
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!rolesLoading() && (roles()?.length ?? 0) === 0 && !rolesError()) {
+        <p class="cell-note cell-note--empty">لا توجد أدوار.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingRoleId() !== undefined) {
+    <wims-role-editor [roleId]="editingRoleId()!" [permissions]="permissions()"
+      (closed)="closeRoleEditor($event)" />
+  }
+
+  <wims-confirm-dialog #deleteDlg
+    title="حذف الدور"
+    [message]="'سيُحذف الدور «' + deleteName() + '». لا يمكن التراجع.'"
+    confirmLabel="تأكيد الحذف" cancelLabel="إلغاء" [danger]="true"
+    (confirmed)="confirmDeleteRole()" />
+}
+
+<!-- ======================= صلاحياتي ======================= -->
+@if (tab() === 'permissions') {
+  <section class="card identity">
+    <span class="identity__avatar" aria-hidden="true">{{ initial() }}</span>
+    <div class="identity__body">
+      <h2 class="identity__name">{{ userName() || 'مستخدم' }}</h2>
+      <div class="identity__roles">
+        @for (r of roleNames(); track r) {
+          <span class="badge badge--approved"><span class="badge__dot"></span>{{ r }}</span>
+        }
+        @if (roleNames().length === 0) { <span class="identity__norole">بلا أدوار</span> }
+      </div>
+    </div>
+    <div class="identity__count">
+      <span class="num identity__count-val">{{ heldCount() }} / {{ totalCount }}</span>
+      <span class="identity__count-lbl">صلاحية ممنوحة</span>
+    </div>
+  </section>
+
+  <section class="perm-grid">
+    @for (g of groups(); track g.module) {
+      <article class="card perm-card">
+        <header class="perm-card__head">
+          <h3>{{ g.module }}</h3>
+          <span class="perm-card__count num" [class.is-full]="g.heldCount === g.items.length">
+            {{ g.heldCount }}/{{ g.items.length }}
+          </span>
+        </header>
+        <ul class="perm-list">
+          @for (p of g.items; track p.key) {
+            <li class="perm-item" [class.perm-item--off]="!p.held">
+              <span class="perm-item__mark" [attr.data-held]="p.held" aria-hidden="true">
+                @if (p.held) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="6" y1="12" x2="18" y2="12" />
+                  </svg>
+                }
+              </span>
+              <span class="perm-item__name">{{ p.name }}</span>
+              <span class="perm-item__key num">{{ p.key }}</span>
+            </li>
+          }
+        </ul>
+      </article>
+    }
+  </section>
+}

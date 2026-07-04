@@ -1,0 +1,192 @@
+<header class="page-head">
+  <a routerLink="/inventory/counts" class="back">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+    العودة لمحاضر الجرد
+  </a>
+</header>
+
+@if (loading()) {
+  <div class="card"><div class="card__body loading-row">
+    <span class="spinner" aria-hidden="true"></span> جارِ التحميل…
+  </div></div>
+} @else if (error()) {
+  <div class="card"><div class="card__body state--error">
+    <p>{{ error() }}</p>
+    <button class="btn btn--secondary" (click)="back()">العودة</button>
+  </div></div>
+} @else if (detail()) {
+  @if (detail(); as d) {
+  @if (header(); as h) {
+  <!-- الترويسة -->
+  <section class="card c-head">
+    <div class="c-head__main">
+      <div class="c-head__title">
+        <h1 class="num">{{ h.countNo }}</h1>
+        <span class="badge" [class]="'badge ' + statusBadge[h.status]">
+          <span class="badge__dot"></span>{{ statusLabel[h.status] }}
+        </span>
+      </div>
+      <p class="c-head__type">{{ typeLabel[h.countType] }} · {{ h.warehouseName }}</p>
+    </div>
+    <dl class="c-meta">
+      <div><dt>جمّده</dt><dd>{{ h.frozenBy || '—' }}</dd></div>
+      <div><dt>تاريخ التجميد</dt>
+        <dd class="num">{{ h.frozenAt ? (h.frozenAt | date: 'yyyy/MM/dd HH:mm') : '—' }}</dd></div>
+      <div><dt>اعتمده</dt><dd>{{ h.approvedBy || '—' }}</dd></div>
+      <div><dt>قيمة الفروقات</dt>
+        <dd class="num" [class.variance]="h.totalVarianceValue !== 0">
+          {{ h.totalVarianceValue | number: '1.2-2' }}</dd></div>
+      @if (h.scopeNote) { <div class="c-meta__wide"><dt>النطاق</dt><dd>{{ h.scopeNote }}</dd></div> }
+    </dl>
+
+    @if (voucherNos(h.adjustmentVoucherNos).length > 0) {
+      <div class="adj-vouchers">
+        <span class="adj-label">تسويات مُرحَّلة:</span>
+        @for (no of voucherNos(h.adjustmentVoucherNos); track no) {
+          <span class="adj-chip num">{{ no }}</span>
+        }
+      </div>
+    }
+  </section>
+
+  @if (savedOk()) {
+    <div class="alert alert--ok" role="status">
+      <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+      <span>حُفظت الأعداد الفعلية.</span>
+    </div>
+  }
+  @if (actionError()) {
+    <div class="alert alert--error" role="alert">
+      <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+        <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+      <span>{{ actionError() }}</span>
+    </div>
+  }
+
+  <!-- بنود المحضر -->
+  <section class="card">
+    <div class="card__header c-lines-head">
+      <h2>البنود ({{ d.lines.length }})</h2>
+      @if (editable()) {
+        <button class="btn btn--primary btn--sm" (click)="saveCount()"
+          [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">حفظ العدّ</span>
+        </button>
+      }
+    </div>
+    <div class="table-wrap">
+      <table class="table lines-table">
+        <thead>
+          <tr>
+            <th class="ta-end">#</th>
+            <th>كود الصنف</th>
+            <th>الصنف</th>
+            <th>دفعة/سيريال</th>
+            <th class="ta-end">الرصيد الدفتري</th>
+            <th class="ta-end">العدّ الفعلي</th>
+            <th class="ta-end">الفرق</th>
+            <th class="ta-end">قيمة الفرق</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of d.lines; track l.id) {
+            <tr>
+              <td class="num ta-end">{{ l.lineNo }}</td>
+              <td class="num code">{{ l.itemCode }}</td>
+              <td>{{ l.itemName }}</td>
+              <td class="num dims">
+                {{ l.batchNo || '—' }}@if (l.serialNo) { <span class="sep">·</span>{{ l.serialNo }} }
+              </td>
+              <td class="num ta-end">{{ l.bookQty | number: '1.0-3' }}</td>
+              <td class="num ta-end phys-cell">
+                @if (editable()) {
+                  <input class="input input--qty num" type="number" min="0" step="any"
+                    [value]="physValue(l)"
+                    (input)="setEdit(l.id, $any($event.target).value)"
+                    [attr.aria-label]="'العدّ الفعلي للبند ' + l.lineNo" />
+                } @else {
+                  {{ l.physicalQty !== null ? (l.physicalQty | number: '1.0-3') : '—' }}
+                }
+              </td>
+              <td class="num ta-end"
+                [class.var-pos]="liveVariance(l.id, l.bookQty, l.physicalQty) > 0"
+                [class.var-neg]="liveVariance(l.id, l.bookQty, l.physicalQty) < 0">
+                {{ liveVariance(l.id, l.bookQty, l.physicalQty) | number: '1.0-3' }}
+              </td>
+              <td class="num ta-end" [class.variance]="l.varianceValue !== 0">
+                {{ l.varianceValue | number: '1.2-2' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7" class="ta-end foot-label">إجمالي قيمة الفروقات</td>
+            <td class="num ta-end foot-total" [class.variance]="h.totalVarianceValue !== 0">
+              {{ h.totalVarianceValue | number: '1.2-2' }}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      @if (d.lines.length === 0) {
+        <div class="lines-empty">لا بنود بعد. جمّد المحضر لالتقاط الأرصدة الدفترية.</div>
+      }
+    </div>
+  </section>
+
+  <!-- شريط الإجراءات -->
+  @if (actions().canFreeze || actions().canSubmit || actions().canApprove || actions().canCancel) {
+    <div class="actionbar">
+      @if (actions().canCancel) {
+        <button class="btn btn--danger" (click)="openCancel()" [disabled]="busy()">إلغاء المحضر</button>
+      }
+      <div class="actionbar__spacer"></div>
+      @if (actions().canFreeze) {
+        <button class="btn btn--primary" (click)="freeze()" [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">تجميد والتقاط الأرصدة</span>
+        </button>
+      }
+      @if (actions().canSubmit) {
+        <button class="btn btn--primary" (click)="submit()" [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">رفع للمراجعة</span>
+        </button>
+      }
+      @if (actions().canApprove) {
+        <button class="btn btn--justice" (click)="openApprove()" [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" />
+          </svg>
+          <span class="btn__label">اعتماد وترحيل التسويات</span>
+        </button>
+      }
+    </div>
+  }
+
+  <wims-confirm-dialog #approveDlg
+    title="اعتماد محضر الجرد"
+    message="سيتم ترحيل تسويات تلقائية للفروقات وإلغاء تجميد المخزن. لا يمكنك اعتماد محضر جمّدته أو أنشأته."
+    confirmLabel="اعتماد وترحيل"
+    (confirmed)="onApprove()" />
+
+  <wims-confirm-dialog #cancelDlg
+    title="إلغاء محضر الجرد"
+    message="سيُلغى المحضر ويُلغى تجميد المخزن. لا يمكن التراجع."
+    confirmLabel="تأكيد الإلغاء" [danger]="true"
+    (confirmed)="onCancel()" />
+  }
+  }
+}

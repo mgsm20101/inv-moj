@@ -1,0 +1,85 @@
+<header class="page-head">
+  <div>
+    <h1>العُهد والموافقات</h1>
+    <p class="page-head__sub">اعتماد المستندات المعروضة، وكشوف عهد الموظفين وبراءة الذمة.</p>
+  </div>
+</header>
+
+<!-- تنقّل مجزّأ بين سطحَي المرحلة -->
+<nav class="segbar" aria-label="أقسام العُهد والموافقات">
+  <a routerLink="/approvals" class="seg is-active" aria-current="page">صندوق الموافقات</a>
+  <a routerLink="/custody" class="seg">كشف العُهد</a>
+</nav>
+
+<section class="card">
+  <div class="card__header inbox-head">
+    <h2>مستندات بانتظار الاعتماد</h2>
+    @if (!loading() && !error()) {
+      <span class="count-note num">{{ pendingCount() }} مستند</span>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="state state--error" role="alert">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+        <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+      <p>{{ error() }}</p>
+      <button class="btn btn--secondary" (click)="load()">إعادة المحاولة</button>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="table inbox-table">
+        <thead>
+          <tr>
+            <th>رقم المستند</th>
+            <th>النوع</th>
+            <th>المخزن</th>
+            <th class="ta-end">الأسطر</th>
+            <th>مقدَّم من</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            @for (r of skeletonRows; track $index) {
+              <tr class="skl-row">
+                @for (c of [1,2,3,4,5,6]; track c) { <td><span class="skl"></span></td> }
+              </tr>
+            }
+          } @else {
+            @for (v of rows(); track v.id) {
+              <tr class="row-link" [routerLink]="['/movements', v.id]">
+                <td class="num code"><span class="doc-link">{{ v.voucherNo }}</span></td>
+                <td>{{ typeLabel[v.voucherType] }}</td>
+                <td>{{ warehouseName(v.warehouseId) }}
+                  @if (v.toWarehouseId) { <span class="arrow">←</span> {{ warehouseName(v.toWarehouseId) }} }
+                </td>
+                <td class="num ta-end">{{ v.lineCount }}</td>
+                <td>{{ v.createdBy || '—' }}</td>
+                <td class="ta-end">
+                  <span class="review-cue">
+                    مراجعة
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+                      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M15 6l-6 6 6 6" />
+                    </svg>
+                  </span>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!loading() && rows().length === 0) {
+        <wims-empty-state
+          title="لا مستندات بانتظار الاعتماد"
+          message="كل المستندات المعروضة تمت مراجعتها. ستظهر هنا المستندات الجديدة فور رفعها للاعتماد.">
+        </wims-empty-state>
+      }
+    </div>
+  }
+</section>

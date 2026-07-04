@@ -1,0 +1,93 @@
+// ===================================================================
+// WIMS Design Tokens — مشتقة من DESIGN.md (الدفتر الرسمي + الختم)
+// المصدر الوحيد للحقيقة البصرية. لا ألوان/مسافات خارج هذه المتغيرات.
+// ===================================================================
+
+:root {
+  // ---- الألوان (Colors) ----
+  --ink: #17263b;          // حبر: النص الأساسي، رؤوس الجداول
+  --paper: #f4f6f7;        // ورق: خلفية التطبيق
+  --card: #ffffff;         // خلفية الكروت والجداول
+  --justice: #1e6a54;      // أخضر العدالة: نجاح/معتمَد
+  --justice-soft: #e6efec; // خلفية خضراء خافتة
+  --stamp: #a6742b;        // براس الختم: التوقيع/الاعتماد فقط
+  --stamp-soft: #f3ebdd;   // خلفية براس خافتة (للحظة الختم فقط)
+  --border: #e3e7ea;       // حدود، فواصل
+  --border-strong: #c8d0d6;// حدود أوضح (حقول focus، رؤوس)
+  --text: #17263b;         // النص الأساسي (= الحبر)
+  --text-muted: #5b6b7a;   // نص ثانوي/مساعد
+  --text-on-dark: #eef2f4; // نص فوق خلفية داكنة
+
+  --error: #b42318;
+  --error-soft: #fbeae8;
+  --warning: #b7791f;
+  --warning-soft: #fbf1e0;
+  --info: #1e4e79;
+  --info-soft: #e7eef5;
+
+  // ---- حالات تفاعلية (State layers) ----
+  --hover-tint: rgba(23, 38, 59, 0.04);
+  --active-tint: rgba(23, 38, 59, 0.08);
+  --selected-tint: rgba(30, 106, 84, 0.08);
+  --focus-ring: 0 0 0 3px rgba(30, 78, 121, 0.35);
+
+  // ---- الطباعة (Typography) ----
+  --font-ui: "IBM Plex Sans Arabic", system-ui, "Segoe UI", sans-serif;
+  --font-doc: "Amiri", "IBM Plex Sans Arabic", serif; // توقيع/مستندات
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  // سُلّم ثابت (rem) — Product register: لا clamp
+  --fs-display: 1.75rem; // 28
+  --fs-h1: 1.375rem;     // 22
+  --fs-h2: 1.125rem;     // 18
+  --fs-body: 0.9375rem;  // 15
+  --fs-small: 0.8125rem; // 13
+  --fs-num: 0.9375rem;   // 15 (tabular)
+
+  --lh-tight: 1.4;   // جداول كثيفة
+  --lh-body: 1.7;    // نص جارٍ
+
+  // ---- المسافات (Spacing — شبكة 8px) ----
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  // خلايا الجداول الكثيفة
+  --cell-pad-y: 8px;
+  --cell-pad-x: 12px;
+
+  // ---- الحدود والاستدارة (Radius) — كروت 12–16، أزرار 8 ----
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  // ---- الظلال (Shadow) — محدّدة وهادئة، لا مبالغة ----
+  --shadow-sm: 0 1px 2px rgba(23, 38, 59, 0.06);
+  --shadow-md: 0 4px 12px rgba(23, 38, 59, 0.08);
+  --shadow-pop: 0 8px 24px rgba(23, 38, 59, 0.12);
+
+  // ---- الحركة (Motion) — 150–250ms، ease-out، وظيفية ----
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 250ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); // ease-out-quart
+
+  // ---- z-index scale دلالي ----
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+
+  // ---- تخطيط الـ shell ----
+  --sidenav-w: 264px;
+  --topbar-h: 60px;
+}

@@ -1,0 +1,100 @@
+<header class="page-head">
+  <div>
+    <h1>الجرد والتنبيهات</h1>
+    <p class="page-head__sub">محاضر الجرد الفعلي وتسوية الفروقات.</p>
+  </div>
+  <a routerLink="/inventory/counts/new" class="btn btn--primary">
+    <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true"
+      fill="none" stroke="currentColor" stroke-width="1.7"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    <span class="btn__label">جرد جديد</span>
+  </a>
+</header>
+
+<nav class="segbar" aria-label="أقسام الجرد والتنبيهات">
+  <a routerLink="/inventory" class="seg">التنبيهات</a>
+  <a routerLink="/inventory/counts" class="seg is-active" aria-current="page">محاضر الجرد</a>
+</nav>
+
+<div class="toolbar">
+  <div class="field field--inline">
+    <label class="field__label" for="status">الحالة</label>
+    <select id="status" class="input" [(ngModel)]="status" (ngModelChange)="onFilterChange()" name="status">
+      <option value="">كل الحالات</option>
+      @for (s of statusOptions; track s.value) {
+        <option [value]="s.value">{{ s.label }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+<section class="card">
+  @if (error()) {
+    <div class="state state--error" role="alert">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+        <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+      <p>{{ error() }}</p>
+      <button class="btn btn--secondary" (click)="load()">إعادة المحاولة</button>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="table counts-table">
+        <thead>
+          <tr>
+            <th>رقم المحضر</th>
+            <th>النوع</th>
+            <th>المخزن</th>
+            <th class="ta-end">البنود</th>
+            <th class="ta-end">قيمة الفروقات</th>
+            <th>جمّده</th>
+            <th>اعتمده</th>
+            <th>الحالة</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            @for (r of skeletonRows; track $index) {
+              <tr class="skl-row">
+                @for (c of [1,2,3,4,5,6,7,8]; track c) { <td><span class="skl"></span></td> }
+              </tr>
+            }
+          } @else {
+            @for (c of rows(); track c.id) {
+              <tr class="row-link" [routerLink]="['/inventory/counts', c.id]">
+                <td class="num code"><span class="doc-link">{{ c.countNo }}</span></td>
+                <td>{{ typeLabel[c.countType] }}</td>
+                <td>{{ c.warehouseName }}</td>
+                <td class="num ta-end">{{ c.lineCount }}</td>
+                <td class="num ta-end" [class.variance]="c.totalVarianceValue !== 0">
+                  {{ c.totalVarianceValue | number: '1.2-2' }}
+                </td>
+                <td>{{ c.frozenBy || '—' }}</td>
+                <td>{{ c.approvedBy || '—' }}</td>
+                <td>
+                  <span class="badge" [class]="'badge ' + statusBadge[c.status]">
+                    <span class="badge__dot"></span>{{ statusLabel[c.status] }}
+                  </span>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!loading() && rows().length === 0) {
+        <wims-empty-state
+          title="لا محاضر جرد"
+          message="ابدأ محضر جرد جديد لالتقاط الأرصدة الدفترية ومطابقتها بالفعلي.">
+          <a routerLink="/inventory/counts/new" class="btn btn--primary" style="margin-top: var(--space-md)">
+            جرد جديد
+          </a>
+        </wims-empty-state>
+      }
+    </div>
+  }
+</section>

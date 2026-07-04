@@ -1,0 +1,145 @@
+<dialog #dlg class="editor" (cancel)="onDialogCancel($event)">
+  <header class="editor__head">
+    <h3>{{ isNew() ? 'مستخدم جديد' : 'تعديل مستخدم' }}</h3>
+    <button type="button" class="iconbtn" (click)="cancel()" aria-label="إغلاق">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </header>
+
+  @if (loading()) {
+    <p class="editor__loading">جارِ التحميل…</p>
+  } @else {
+    @if (error()) {
+      <div class="alert alert--error" role="alert">{{ error() }}</div>
+    }
+
+    <form class="editor__body" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label class="field__label" for="ue-userName">
+          اسم الدخول<span class="req">*</span>
+        </label>
+        <input id="ue-userName" class="input" formControlName="userName"
+          [class.is-invalid]="f.userName.invalid && f.userName.touched"
+          autocomplete="off" />
+        @if (f.userName.invalid && f.userName.touched) {
+          <span class="field__error">اسم الدخول مطلوب.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="ue-fullName">
+          الاسم الكامل<span class="req">*</span>
+        </label>
+        <input id="ue-fullName" class="input" formControlName="fullName"
+          [class.is-invalid]="f.fullName.invalid && f.fullName.touched" />
+        @if (f.fullName.invalid && f.fullName.touched) {
+          <span class="field__error">الاسم الكامل مطلوب.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="ue-email">
+          البريد الإلكتروني<span class="req">*</span>
+        </label>
+        <input id="ue-email" type="email" class="input" formControlName="email"
+          dir="ltr" [class.is-invalid]="f.email.invalid && f.email.touched" />
+        @if (f.email.invalid && f.email.touched) {
+          <span class="field__error">بريد إلكتروني صحيح مطلوب.</span>
+        }
+      </div>
+
+      @if (isNew()) {
+        <div class="field">
+          <label class="field__label" for="ue-password">
+            كلمة المرور<span class="req">*</span>
+          </label>
+          <input id="ue-password" type="password" class="input" formControlName="password"
+            dir="ltr" autocomplete="new-password"
+            [class.is-invalid]="f.password.invalid && f.password.touched" />
+          @if (f.password.invalid && f.password.touched) {
+            <span class="field__error">ثمانية أحرف على الأقل، وتشمل حرفاً كبيراً وصغيراً ورقماً ورمزاً.</span>
+          } @else {
+            <span class="field__hint">ثمانية أحرف على الأقل، وتشمل حرفاً كبيراً وصغيراً ورقماً ورمزاً.</span>
+          }
+        </div>
+      }
+
+      <!-- الأدوار -->
+      <div class="field">
+        <span class="field__label">الأدوار</span>
+        <div class="rolepick">
+          @for (r of roles(); track r.id) {
+            <label class="rolepick__item" [class.is-on]="isRoleSelected(r.id)">
+              <input type="checkbox" [checked]="isRoleSelected(r.id)"
+                (change)="toggleRole(r.id)" />
+              <span>{{ r.name }}</span>
+            </label>
+          }
+          @if (roles().length === 0) {
+            <span class="field__hint">لا توجد أدوار معرّفة.</span>
+          }
+        </div>
+      </div>
+
+      <div class="editor__actions">
+        <button type="button" class="btn btn--secondary" (click)="cancel()">إلغاء</button>
+        <button type="submit" class="btn btn--primary"
+          [class.is-loading]="saving()" [disabled]="saving()">
+          @if (saving()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">حفظ</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- إجراءات إضافية (تعديل فقط) -->
+    @if (!isNew()) {
+      <section class="editor__extra">
+        <div class="extra-row">
+          <div>
+            <b>حالة التفعيل</b>
+            @if (isActive()) {
+              <span class="badge badge--approved"><span class="badge__dot"></span>نشط</span>
+            } @else {
+              <span class="badge badge--draft"><span class="badge__dot"></span>معطّل</span>
+            }
+          </div>
+          <button type="button" class="btn btn--secondary" (click)="toggleActive()">
+            {{ isActive() ? 'تعطيل الحساب' : 'تفعيل الحساب' }}
+          </button>
+        </div>
+
+        <div class="extra-row extra-row--stack">
+          <div class="extra-row__top">
+            <b>تصفير كلمة المرور</b>
+            @if (!showResetPw()) {
+              <button type="button" class="btn btn--secondary" (click)="showResetPw.set(true)">
+                تعيين كلمة مرور جديدة
+              </button>
+            }
+          </div>
+          @if (showResetPw()) {
+            <div class="field">
+              <input type="password" class="input" [formControl]="resetPwCtrl"
+                dir="ltr" autocomplete="new-password" placeholder="كلمة المرور الجديدة"
+                [class.is-invalid]="resetPwCtrl.invalid && resetPwCtrl.touched" />
+              @if (resetPwCtrl.invalid && resetPwCtrl.touched) {
+                <span class="field__error">ثمانية أحرف على الأقل، وتشمل حرفاً كبيراً وصغيراً ورقماً ورمزاً.</span>
+              }
+            </div>
+            <div class="editor__actions">
+              <button type="button" class="btn btn--secondary" (click)="showResetPw.set(false)">إلغاء</button>
+              <button type="button" class="btn btn--primary" (click)="submitReset()"
+                [class.is-loading]="saving()" [disabled]="saving()">
+                @if (saving()) { <span class="spinner" aria-hidden="true"></span> }
+                <span class="btn__label">تعيين</span>
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</dialog>

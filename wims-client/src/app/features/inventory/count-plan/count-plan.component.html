@@ -1,0 +1,110 @@
+<header class="page-head">
+  <a routerLink="/inventory/counts" class="back">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+    العودة لمحاضر الجرد
+  </a>
+  <h1>جرد جديد</h1>
+</header>
+
+@if (serverError()) {
+  <div class="alert alert--error" role="alert">
+    <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+      stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+      <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+    <span>{{ serverError() }}</span>
+  </div>
+}
+
+<form (ngSubmit)="submit()" novalidate class="form">
+  <section class="card">
+    <div class="card__header"><h2>نطاق المحضر</h2></div>
+    <div class="card__body grid-2">
+      <div class="field">
+        <label class="field__label" for="warehouseId">المخزن<span class="req">*</span></label>
+        <select id="warehouseId" class="input" name="warehouseId"
+          [(ngModel)]="warehouseId" [class.is-invalid]="submitted() && !warehouseId">
+          <option value="">اختر مخزناً…</option>
+          @for (w of warehouses(); track w.id) {
+            <option [value]="w.id">{{ w.nameAr }} ({{ w.code }})</option>
+          }
+        </select>
+        @if (submitted() && !warehouseId) { <p class="field__error">المخزن مطلوب.</p> }
+      </div>
+      <div class="field">
+        <label class="field__label" for="countType">نوع الجرد<span class="req">*</span></label>
+        <select id="countType" class="input" name="countType"
+          [(ngModel)]="countType" (ngModelChange)="onTypeChange()">
+          @for (t of typeOptions; track t.value) {
+            <option [ngValue]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="field field--wide">
+        <label class="field__label" for="scopeNote">ملاحظة النطاق</label>
+        <input id="scopeNote" class="input" name="scopeNote" [(ngModel)]="scopeNote"
+          placeholder="وصف مختصر لنطاق الجرد (اختياري)" />
+      </div>
+    </div>
+  </section>
+
+  @if (isPartial()) {
+    <section class="card">
+      <div class="card__header"><h2>أصناف الجرد الجزئي<span class="req">*</span></h2></div>
+      <div class="card__body">
+        <div class="field">
+          <label class="field__label" for="itemSearch">ابحث بالكود أو الاسم لإضافة صنف</label>
+          <input id="itemSearch" class="input" type="search" [formControl]="itemSearch"
+            placeholder="اكتب للبحث…" autocomplete="off" />
+        </div>
+
+        @if (searching()) {
+          <p class="picker-hint"><span class="spinner" aria-hidden="true"></span> جارِ البحث…</p>
+        } @else if (itemResults().length > 0) {
+          <ul class="results">
+            @for (it of itemResults(); track it.id) {
+              <li>
+                <label class="result-row">
+                  <input type="checkbox"
+                    [checked]="selectedIds().has(it.id)" (change)="toggleItem(it)" />
+                  <span class="num code">{{ it.itemCode }}</span>
+                  <span class="rname">{{ it.nameAr }}</span>
+                </label>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (selected().length > 0) {
+          <div class="chips">
+            @for (it of selected(); track it.id) {
+              <span class="chip">
+                <span class="num">{{ it.itemCode }}</span> — {{ it.nameAr }}
+                <button type="button" class="chip__x" (click)="removeItem(it.id)"
+                  aria-label="إزالة">×</button>
+              </span>
+            }
+          </div>
+          <p class="count-note num">{{ selected().length }} صنف مختار</p>
+        } @else if (submitted()) {
+          <p class="field__error">اختر صنفاً واحداً على الأقل للجرد الجزئي.</p>
+        }
+      </div>
+    </section>
+  }
+
+  <div class="actions">
+    <a routerLink="/inventory/counts" class="btn btn--secondary">إلغاء</a>
+    <button type="submit" class="btn btn--primary" [class.is-loading]="saving()" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner" aria-hidden="true"></span><span class="btn__label">جارِ الإنشاء…</span>
+      } @else {
+        <span class="btn__label">إنشاء المحضر</span>
+      }
+    </button>
+  </div>
+</form>

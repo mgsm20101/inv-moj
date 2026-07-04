@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wims-api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/WIMS.WebApi"],
+      "port": 5021
+    },
+    {
+      "name": "wims-client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start", "--prefix", "wims-client"],
+      "port": 4200
+    }
+  ]
+}

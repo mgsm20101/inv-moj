@@ -1,0 +1,160 @@
+<div class="login">
+  <!-- لوحة الهوية الرسمية (الحبر + الختم) -->
+  <aside class="login__brand" aria-hidden="false">
+    <div class="brand__inner">
+      <!-- الختم الرسمي: الموتيف التوقيعي الوحيد، بلون براس الختم -->
+      <div class="seal" aria-hidden="true">
+        <svg viewBox="0 0 120 120" role="presentation">
+          <circle class="seal__ring" cx="60" cy="60" r="54" />
+          <circle class="seal__ring seal__ring--inner" cx="60" cy="60" r="44" />
+          <g class="seal__scale">
+            <line x1="60" y1="40" x2="60" y2="78" />
+            <line x1="42" y1="52" x2="78" y2="52" />
+            <path d="M42 52 L34 66 A9 9 0 0 0 50 66 Z" />
+            <path d="M78 52 L70 66 A9 9 0 0 0 86 66 Z" />
+            <line x1="50" y1="80" x2="70" y2="80" />
+          </g>
+        </svg>
+      </div>
+
+      <p class="brand__ministry doc-type">وزارة العدل</p>
+      <h1 class="brand__wordmark">WIMS</h1>
+      <p class="brand__system">نظام إدارة المخازن والمخزون</p>
+
+      <p class="brand__note">
+        قطاع التطوير التقني ومركز المعلومات القضائي
+      </p>
+    </div>
+
+    <p class="brand__foot">سجلٌّ رسمي · دخول موثّق</p>
+  </aside>
+
+  <!-- لوحة النموذج -->
+  <main class="login__panel">
+    <div class="panel__card">
+      <header class="panel__head">
+        <h2>تسجيل الدخول</h2>
+        <p class="panel__sub">أدخل بيانات اعتمادك للمتابعة إلى النظام.</p>
+      </header>
+
+      @if (serverError()) {
+        <div class="alert alert--error" role="alert">
+          <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="8" x2="12" y2="13" />
+            <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+          </svg>
+          <span>{{ serverError() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="field">
+          <label class="field__label" for="username">
+            اسم المستخدم<span class="req" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="username"
+            class="input"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            [class.is-invalid]="username.invalid && username.touched"
+            [attr.aria-invalid]="username.invalid && username.touched"
+            aria-describedby="username-err"
+          />
+          @if (username.invalid && username.touched) {
+            <p class="field__error" id="username-err">
+              <svg viewBox="0 0 24 24" aria-hidden="true" width="14" height="14">
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="8" x2="12" y2="13" />
+                <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+              </svg>
+              اسم المستخدم مطلوب.
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="password">
+            كلمة المرور<span class="req" aria-hidden="true">*</span>
+          </label>
+          <div class="input-group">
+            <input
+              id="password"
+              class="input"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              [class.is-invalid]="password.invalid && password.touched"
+              [attr.aria-invalid]="password.invalid && password.touched"
+              aria-describedby="password-err"
+            />
+            <button
+              type="button"
+              class="input-group__toggle"
+              (click)="togglePassword()"
+              [attr.aria-pressed]="showPassword()"
+              [attr.aria-label]="showPassword() ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'"
+            >
+              @if (showPassword()) {
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 3l18 18" />
+                  <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                  <path d="M9.4 5.2A9.5 9.5 0 0 1 12 5c5 0 9 4.5 9 7a12 12 0 0 1-2.2 3M6.2 7.4C3.9 8.9 3 11 3 12c0 2.5 4 7 9 7a9 9 0 0 0 3-.5" />
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" />
+                  <circle cx="12" cy="12" r="2.6" />
+                </svg>
+              }
+            </button>
+          </div>
+          @if (password.invalid && password.touched) {
+            <p class="field__error" id="password-err">
+              <svg viewBox="0 0 24 24" aria-hidden="true" width="14" height="14">
+                <circle cx="12" cy="12" r="9" />
+                <line x1="12" y1="8" x2="12" y2="13" />
+                <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+              </svg>
+              @if (password.errors?.['required']) {
+                كلمة المرور مطلوبة.
+              } @else {
+                كلمة المرور 6 أحرف على الأقل.
+              }
+            </p>
+          }
+        </div>
+
+        <label class="remember">
+          <input type="checkbox" formControlName="remember" />
+          <span>إبقائي مسجَّلاً على هذا الجهاز</span>
+        </label>
+
+        <button
+          type="submit"
+          class="btn btn--primary login__submit"
+          [class.is-loading]="loading()"
+          [disabled]="loading()"
+        >
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn__label">جارِ التحقق…</span>
+          } @else {
+            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 17l5-5-5-5" />
+              <path d="M15 12H3" />
+              <path d="M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+            </svg>
+            <span class="btn__label">دخول</span>
+          }
+        </button>
+      </form>
+    </div>
+
+    <p class="login__legal">
+      الدخول مقصور على المستخدمين المصرَّح لهم. كل عملية دخول تُسجَّل.
+    </p>
+  </main>
+</div>

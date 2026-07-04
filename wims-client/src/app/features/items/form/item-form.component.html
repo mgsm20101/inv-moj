@@ -1,0 +1,179 @@
+<header class="page-head">
+  <a routerLink="/items" class="back">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+    العودة للكتالوج
+  </a>
+  <h1>{{ editId() ? 'تعديل صنف' : 'صنف جديد' }}</h1>
+</header>
+
+@if (loading()) {
+  <div class="card"><div class="card__body loading-row">
+    <span class="spinner" aria-hidden="true"></span> جارِ التحميل…
+  </div></div>
+} @else {
+  @if (serverError()) {
+    <div class="alert alert--error" role="alert">
+      <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+        <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+      <span>{{ serverError() }}</span>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="form">
+    <!-- التعريف -->
+    <section class="card">
+      <div class="card__header"><h2>التعريف</h2></div>
+      <div class="card__body grid-2">
+        <div class="field">
+          <label class="field__label" for="itemCode">كود الصنف</label>
+          <input id="itemCode" class="input num" formControlName="itemCode"
+            placeholder="GG-CCCC-SSSS — اتركه فارغاً للتوليد الآلي" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="barcode">باركود</label>
+          <input id="barcode" class="input num" formControlName="barcode" dir="ltr" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="nameAr">الاسم بالعربي<span class="req">*</span></label>
+          <input id="nameAr" class="input" formControlName="nameAr"
+            [class.is-invalid]="f.nameAr.invalid && f.nameAr.touched" />
+          @if (f.nameAr.invalid && f.nameAr.touched) {
+            <p class="field__error">الاسم بالعربي مطلوب.</p>
+          }
+        </div>
+        <div class="field">
+          <label class="field__label" for="nameEn">الاسم بالإنجليزي</label>
+          <input id="nameEn" class="input" formControlName="nameEn" dir="ltr" />
+        </div>
+      </div>
+    </section>
+
+    <!-- التصنيف والوحدة -->
+    <section class="card">
+      <div class="card__header"><h2>التصنيف والوحدة</h2></div>
+      <div class="card__body grid-2">
+        <div class="field">
+          <label class="field__label" for="categoryId">التصنيف<span class="req">*</span></label>
+          <select id="categoryId" class="input" formControlName="categoryId"
+            [class.is-invalid]="f.categoryId.invalid && f.categoryId.touched">
+            <option value="">اختر تصنيفاً…</option>
+            @for (c of categories(); track c.id) {
+              <option [value]="c.id">{{ c.nameAr }} ({{ c.code }})</option>
+            }
+          </select>
+          @if (editId()) { <p class="field__hint">لا يمكن تغيير التصنيف بعد الإنشاء.</p> }
+        </div>
+        <div class="field">
+          <label class="field__label" for="baseUnitId">وحدة القياس<span class="req">*</span></label>
+          <select id="baseUnitId" class="input" formControlName="baseUnitId"
+            [class.is-invalid]="f.baseUnitId.invalid && f.baseUnitId.touched">
+            <option value="">اختر وحدة…</option>
+            @for (u of units(); track u.id) {
+              <option [value]="u.id">{{ u.nameAr }} ({{ u.code }})</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="itemType">نوع الصنف<span class="req">*</span></label>
+          <select id="itemType" class="input" formControlName="itemType">
+            @for (t of itemTypes; track t.value) {
+              <option [ngValue]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- التتبّع -->
+    <section class="card">
+      <div class="card__header"><h2>أبعاد التتبّع</h2></div>
+      <div class="card__body checks">
+        <label class="check"><input type="checkbox" formControlName="tracksBatch" /> يتتبع دفعة</label>
+        <label class="check"><input type="checkbox" formControlName="tracksExpiry" /> يتتبع صلاحية</label>
+        <label class="check"><input type="checkbox" formControlName="tracksSerial" /> يتتبع سيريال</label>
+      </div>
+    </section>
+
+    <!-- حقول شرطية -->
+    @if (isHazardous()) {
+      <section class="card">
+        <div class="card__header"><h2>بيانات الخطورة</h2></div>
+        <div class="card__body grid-2">
+          <div class="field">
+            <label class="field__label" for="hazardClass">تصنيف الخطورة<span class="req">*</span></label>
+            <input id="hazardClass" class="input" formControlName="hazardClass"
+              [class.is-invalid]="f.hazardClass.invalid && f.hazardClass.touched" />
+            @if (f.hazardClass.invalid && f.hazardClass.touched) {
+              <p class="field__error">تصنيف الخطورة مطلوب للأصناف الخطرة.</p>
+            }
+          </div>
+          <div class="field">
+            <label class="field__label" for="storageConditions">شروط التخزين</label>
+            <input id="storageConditions" class="input" formControlName="storageConditions" />
+          </div>
+        </div>
+      </section>
+    }
+    @if (isPerishable()) {
+      <section class="card">
+        <div class="card__header"><h2>بيانات الصلاحية</h2></div>
+        <div class="card__body grid-2">
+          <div class="field">
+            <label class="field__label" for="shelfLifeDays">العمر الافتراضي (يوم)<span class="req">*</span></label>
+            <input id="shelfLifeDays" type="number" min="1" class="input num" formControlName="shelfLifeDays"
+              [class.is-invalid]="f.shelfLifeDays.invalid && f.shelfLifeDays.touched" />
+            @if (f.shelfLifeDays.invalid && f.shelfLifeDays.touched) {
+              <p class="field__error">العمر الافتراضي مطلوب للأصناف القابلة للتلف.</p>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- مستويات المخزون -->
+    <section class="card">
+      <div class="card__header"><h2>مستويات المخزون</h2></div>
+      <div class="card__body grid-3">
+        <div class="field">
+          <label class="field__label" for="minStock">الحد الأدنى<span class="req">*</span></label>
+          <input id="minStock" type="number" min="0" step="any" class="input num" formControlName="minStock" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="reorderPoint">نقطة إعادة الطلب<span class="req">*</span></label>
+          <input id="reorderPoint" type="number" min="0" step="any" class="input num" formControlName="reorderPoint" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="maxStock">الحد الأقصى</label>
+          <input id="maxStock" type="number" min="0" step="any" class="input num" formControlName="maxStock" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="reorderQty">كمية إعادة الطلب</label>
+          <input id="reorderQty" type="number" min="0" step="any" class="input num" formControlName="reorderQty" />
+        </div>
+      </div>
+      @if (form.errors?.['reorderBelowMin']) {
+        <p class="field__error card__inline-err">نقطة إعادة الطلب يجب ألّا تقل عن الحد الأدنى.</p>
+      }
+      @if (form.errors?.['maxBelowReorder']) {
+        <p class="field__error card__inline-err">الحد الأقصى يجب ألّا يقل عن نقطة إعادة الطلب.</p>
+      }
+    </section>
+
+    <div class="actions">
+      <a routerLink="/items" class="btn btn--secondary">إلغاء</a>
+      <button type="submit" class="btn btn--primary" [class.is-loading]="saving()" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span><span class="btn__label">جارِ الحفظ…</span>
+        } @else {
+          <span class="btn__label">{{ editId() ? 'حفظ التعديلات' : 'حفظ الصنف' }}</span>
+        }
+      </button>
+    </div>
+  </form>
+}

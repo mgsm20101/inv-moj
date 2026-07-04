@@ -1,0 +1,87 @@
+:host { display: block; }
+
+.page-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-md); margin-bottom: var(--space-lg);
+}
+.page-head h1 { font-size: var(--fs-display); }
+.page-head__sub { margin-top: 2px; color: var(--text-muted); font-size: var(--fs-body); }
+
+.state--error {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
+  text-align: center; padding: var(--space-xl);
+  svg { width: 40px; height: 40px; color: #8a1c14; }
+}
+
+// قيمة المخزون: سطر نصّي هادئ
+.value-line {
+  margin-bottom: var(--space-md); color: var(--text-muted); font-size: var(--fs-body);
+}
+.value-line__num { color: var(--ink); font-weight: var(--fw-semibold); font-size: var(--fs-h2); margin: 0 6px; }
+.value-line__cur { color: var(--text-muted); font-size: var(--fs-small); }
+
+// ---- بطاقات المؤشرات (هادئة، بلا أرقام عملاقة) ----
+.kpis {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-md); margin-bottom: var(--space-lg);
+}
+.tile {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.tile--link {
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  &:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); text-decoration: none; }
+}
+.tile__value { font-size: var(--fs-h1); font-weight: var(--fw-semibold); color: var(--ink); line-height: 1.2; }
+.tile__label { font-size: var(--fs-body); color: var(--ink); }
+.tile__hint { font-size: var(--fs-small); color: var(--text-muted); }
+
+// نبرة الحالة: شريط علوي رفيع فقط (لا لون على كامل البطاقة، لا side-stripe)
+.tile[data-tone="warning"] .tile__value { color: #7a5211; }
+.tile[data-tone="critical"] .tile__value { color: var(--error); }
+.tile[data-tone="justice"] .tile__value { color: var(--justice); }
+
+// ---- لوحتان: عجوزات + تنبيهات ----
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); align-items: start; }
+.panel__head { display: flex; align-items: center; justify-content: space-between; }
+.panel__all { font-size: var(--fs-small); font-weight: var(--fw-medium); }
+.panel__empty { padding: var(--space-xl); text-align: center; color: var(--text-muted); font-size: var(--fs-body); }
+
+.table-wrap { overflow-x: auto; }
+.table th.ta-end, .table td.ta-end { text-align: end; }
+.code { white-space: nowrap; font-weight: var(--fw-medium); }
+.sub { display: block; color: var(--text-muted); font-size: var(--fs-small); }
+.shortage { color: var(--warning); font-weight: var(--fw-medium); }
+
+// قائمة التنبيهات
+.alerts-list { padding: var(--space-sm) 0; }
+.alert-item {
+  display: flex; align-items: flex-start; gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg); border-bottom: 1px solid var(--border);
+  &:last-child { border-bottom: none; }
+}
+.alert-item__body { min-width: 0; }
+.alert-item__msg { color: var(--ink); font-size: var(--fs-body); }
+.alert-item__meta { color: var(--text-muted); font-size: var(--fs-small); margin-top: 2px; }
+
+// هياكل تحميل
+.skl {
+  display: block; height: 14px; border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--paper), #e9edf0, var(--paper));
+  background-size: 200% 100%; animation: skl-shimmer 1.2s ease-in-out infinite;
+}
+.skl--val { height: 22px; width: 60%; margin-bottom: 8px; }
+.skl--lbl { height: 12px; width: 80%; }
+@keyframes skl-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skl { animation: none; } }
+
+@media (max-width: 860px) {
+  .panels { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .page-head { flex-direction: column; }
+}

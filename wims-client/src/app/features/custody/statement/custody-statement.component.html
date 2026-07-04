@@ -1,0 +1,209 @@
+<header class="page-head">
+  <div>
+    <h1>العُهد والموافقات</h1>
+    <p class="page-head__sub">اعتماد المستندات المعروضة، وكشوف عهد الموظفين وبراءة الذمة.</p>
+  </div>
+</header>
+
+<nav class="segbar" aria-label="أقسام العُهد والموافقات">
+  <a routerLink="/approvals" class="seg">صندوق الموافقات</a>
+  <a routerLink="/custody" class="seg is-active" aria-current="page">كشف العُهد</a>
+</nav>
+
+<div class="cus-grid">
+  <!-- عمود البحث/الاختيار -->
+  <aside class="card picker">
+    <div class="card__header"><h2>الموظفون</h2></div>
+    <div class="picker__search">
+      <label class="field">
+        <span class="field__label">بحث بالرقم الوظيفي أو الاسم أو الهوية</span>
+        <input class="input" type="search" [formControl]="search"
+          placeholder="اكتب للبحث…" autocomplete="off" />
+      </label>
+    </div>
+    <div class="picker__list" role="listbox" aria-label="قائمة الموظفين">
+      @if (searching()) {
+        <div class="picker__hint"><span class="spinner" aria-hidden="true"></span> جارِ البحث…</div>
+      } @else if (employees().length === 0) {
+        <div class="picker__hint">لا نتائج مطابقة.</div>
+      } @else {
+        @for (e of employees(); track e.id) {
+          <button type="button" class="emp-row"
+            [class.is-selected]="selected()?.id === e.id"
+            role="option" [attr.aria-selected]="selected()?.id === e.id"
+            (click)="select(e)">
+            <span class="emp-row__name">{{ e.fullNameAr }}</span>
+            <span class="emp-row__meta num">{{ e.employeeNo }} · {{ e.department }}</span>
+          </button>
+        }
+      }
+    </div>
+  </aside>
+
+  <!-- عمود كشف العهدة -->
+  <section class="statement">
+    @if (!selected()) {
+      <div class="card"><div class="card__body prompt">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+          stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 5h16M4 12h16M4 19h10" />
+        </svg>
+        <p>اختر موظفاً من القائمة لعرض كشف عهدته.</p>
+      </div></div>
+    } @else if (loading()) {
+      <div class="card"><div class="card__body loading-row">
+        <span class="spinner" aria-hidden="true"></span> جارِ تحميل الكشف…
+      </div></div>
+    } @else if (error()) {
+      <div class="card"><div class="card__body state--error">
+        <p>{{ error() }}</p>
+        <button class="btn btn--secondary" (click)="select(selected()!)">إعادة المحاولة</button>
+      </div></div>
+    } @else if (statement()) {
+      @if (statement(); as s) {
+      <!-- ترويسة الكشف: الدفتر الرسمي -->
+      <section class="card ledger">
+        <div class="ledger__head">
+          <div>
+            <h2 class="ledger__name">{{ s.employeeName }}</h2>
+            <p class="ledger__sub num">{{ s.employeeNo }}</p>
+          </div>
+          <span class="badge" [class]="'badge ' + empStatusBadge[s.employeeStatus]">
+            <span class="badge__dot"></span>{{ empStatusLabel[s.employeeStatus] }}
+          </span>
+        </div>
+        <dl class="ledger__stats">
+          <div><dt>بنود العهدة</dt><dd class="num">{{ s.itemCount }}</dd></div>
+          <div><dt>القائم منها</dt><dd class="num">{{ openItemCount() }}</dd></div>
+          <div><dt>إجمالي القيمة</dt><dd class="num">{{ s.totalValue | number: '1.2-2' }}</dd></div>
+        </dl>
+      </section>
+
+      @if (cleared() && openItemCount() === 0) {
+        <div class="alert alert--ok" role="status">
+          <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          <span>تمّت براءة ذمة الموظف. لا بنود قائمة في عهدته.</span>
+        </div>
+      }
+      @if (clearError()) {
+        <div class="alert alert--error" role="alert">
+          <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+            <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+          </svg>
+          <span>{{ clearError() }}</span>
+        </div>
+      }
+      @if (returnError()) {
+        <div class="alert alert--error" role="alert">
+          <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+            <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+          </svg>
+          <span>{{ returnError() }}</span>
+        </div>
+      }
+
+      <!-- بنود الكشف -->
+      <section class="card">
+        <div class="card__header stmt-head">
+          <h2>البنود</h2>
+          <label class="check check--inline">
+            <input type="checkbox" [checked]="includeHistory()" (change)="toggleHistory()" />
+            إظهار المُرتجع والمنقول
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table class="table stmt-table">
+            <thead>
+              <tr>
+                <th>كود الصنف</th>
+                <th>الصنف</th>
+                <th>سيريال</th>
+                <th class="ta-end">الكمية</th>
+                <th class="ta-end">تكلفة الوحدة</th>
+                <th class="ta-end">القيمة</th>
+                <th>تاريخ التسليم</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (l of s.items; track l.custodyItemId) {
+                <tr>
+                  <td class="num code">{{ l.itemCode }}</td>
+                  <td>{{ l.itemName }}</td>
+                  <td class="num">{{ l.serialNo || '—' }}</td>
+                  <td class="num ta-end">{{ l.qty | number: '1.0-3' }}</td>
+                  <td class="num ta-end">{{ l.unitCost | number: '1.2-2' }}</td>
+                  <td class="num ta-end">{{ l.value | number: '1.2-2' }}</td>
+                  <td class="num">{{ l.assignedAt | date: 'yyyy/MM/dd' }}</td>
+                  <td>
+                    <span class="badge" [class]="'badge ' + itemStatusBadge[l.status]">
+                      <span class="badge__dot"></span>{{ itemStatusLabel[l.status] }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (l.status === CustodyItemStatus.InCustody) {
+                      <button class="btn btn--secondary" *appHasPermission="'Custody.Manage'"
+                        (click)="returnItem(l.custodyItemId)"
+                        [class.is-loading]="returningId() === l.custodyItemId"
+                        [disabled]="returningId() === l.custodyItemId">
+                        @if (returningId() === l.custodyItemId) { <span class="spinner" aria-hidden="true"></span> }
+                        إرجاع للمخزن
+                      </button>
+                    } @else {
+                      —
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" class="ta-end foot-label">إجمالي قيمة العهدة القائمة</td>
+                <td class="num ta-end foot-total">{{ s.totalValue | number: '1.2-2' }}</td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          @if (s.items.length === 0) {
+            <div class="stmt-empty">لا بنود في عهدة هذا الموظف.</div>
+          }
+        </div>
+      </section>
+
+      <!-- براءة الذمة -->
+      <div class="actionbar">
+        @if (openItemCount() > 0) {
+          <p class="clear-note">
+            لا يمكن براءة الذمة قبل إرجاع/نقل {{ openItemCount() }} بند عهدة قائم.
+          </p>
+        }
+        <div class="actionbar__spacer"></div>
+        <button class="btn btn--justice" (click)="openClear()"
+          [class.is-loading]="clearing()" [disabled]="!canClear() || clearing()">
+          @if (clearing()) { <span class="spinner" aria-hidden="true"></span> }
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" />
+          </svg>
+          <span class="btn__label">براءة ذمة</span>
+        </button>
+      </div>
+      }
+    }
+  </section>
+</div>
+
+<wims-confirm-dialog #clearDlg
+  title="براءة ذمة الموظف"
+  message="سيتم إغلاق سجل عهدة الموظف نهائياً. تأكّد أن كل البنود أُرجعت أو نُقلت."
+  confirmLabel="تأكيد براءة الذمة"
+  (confirmed)="onClear()" />

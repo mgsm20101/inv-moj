@@ -1,0 +1,226 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100vh;
+}
+
+// ---- لوحة الهوية (الحبر + الختم) ----
+.login__brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-2xl);
+  background: var(--ink);
+  color: var(--text-on-dark);
+  overflow: hidden;
+
+  // نسيج خافت جداً للورق الرسمي — بلا صخب
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 82% 12%, rgba(166, 116, 43, 0.12), transparent 42%);
+    pointer-events: none;
+  }
+}
+
+.brand__inner {
+  position: relative;
+  margin: auto 0;
+  z-index: 1;
+}
+
+.seal {
+  width: 96px;
+  height: 96px;
+  margin-bottom: var(--space-xl);
+
+  svg { width: 100%; height: 100%; }
+  .seal__ring {
+    fill: none;
+    stroke: var(--stamp);
+    stroke-width: 2;
+    opacity: 0.9;
+  }
+  .seal__ring--inner { stroke-dasharray: 2 5; opacity: 0.6; }
+  .seal__scale {
+    fill: none;
+    stroke: var(--stamp);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .seal__scale path { fill: rgba(166, 116, 43, 0.18); }
+}
+
+.brand__ministry {
+  font-size: 1.5rem;
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-xs);
+  color: #fff;
+}
+.brand__wordmark {
+  font-size: 3.25rem;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  color: #fff;
+  line-height: 1;
+  margin: var(--space-md) 0 var(--space-sm);
+}
+.brand__system {
+  font-size: var(--fs-h2);
+  color: var(--text-on-dark);
+  opacity: 0.85;
+}
+.brand__note {
+  margin-top: var(--space-lg);
+  max-width: 34ch;
+  color: var(--text-on-dark);
+  opacity: 0.6;
+  font-size: var(--fs-small);
+}
+.brand__foot {
+  position: relative;
+  z-index: 1;
+  font-size: var(--fs-small);
+  color: var(--stamp);
+  letter-spacing: 0.02em;
+}
+
+// ---- لوحة النموذج ----
+.login__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-2xl) var(--space-xl);
+  background: var(--paper);
+}
+
+.panel__card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.panel__head h2 {
+  font-size: var(--fs-display);
+}
+.panel__sub {
+  margin-top: var(--space-xs);
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+// حقل كلمة المرور مع زر الإظهار
+.input-group {
+  position: relative;
+  display: flex;
+  .input { flex: 1; padding-inline-end: 44px; }
+}
+.input-group__toggle {
+  position: absolute;
+  inset-inline-end: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+
+  &:hover { color: var(--ink); background: var(--hover-tint); }
+  svg { width: 20px; height: 20px; fill: none; stroke: currentColor;
+    stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+
+  input { width: 16px; height: 16px; accent-color: var(--justice); cursor: pointer; }
+}
+
+.login__submit {
+  margin-top: var(--space-xs);
+  width: 100%;
+}
+
+// أيقونات SVG داخل الحقول/التنبيه
+.field__error svg,
+.alert__icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-small);
+  border: 1px solid transparent;
+}
+.alert--error {
+  background: var(--error-soft);
+  border-color: #f0c4bf;
+  color: #8a1c14;
+  .alert__icon { width: 18px; height: 18px; flex: none; }
+}
+
+.login__legal {
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+// ---- responsive: تحت 860px تُخفى لوحة الهوية وتُختصر لشريط علوي ----
+@media (max-width: 860px) {
+  .login { grid-template-columns: 1fr; }
+  .login__brand {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-lg) var(--space-xl);
+  }
+  .brand__inner { margin: 0; display: flex; align-items: center; gap: var(--space-md); }
+  .seal { width: 48px; height: 48px; margin: 0; }
+  .brand__wordmark { font-size: 1.75rem; margin: 0; }
+  .brand__ministry { font-size: 1rem; margin: 0; }
+  .brand__system,
+  .brand__note,
+  .brand__foot { display: none; }
+}

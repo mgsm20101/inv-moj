@@ -1,0 +1,155 @@
+// ===================================================================
+// WIMS Base — reset، طباعة، focus، جداول، scrollbar (RTL أصلي)
+// ===================================================================
+
+// ---- الخطوط المستضافة ذاتياً (offline-safe) ----
+// لا اتصالات خارجية. تشير إلى /fonts/*.woff2 (من public/fonts؛ انظر README.txt).
+// يُقدَّم local(...) أولاً؛ وإن غاب الملف يعود المتصفح لخطوط النظام في المتغيّر.
+// font-display: swap → لا وميض نص مخفي أثناء التحميل.
+
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local("IBM Plex Sans Arabic"), local("IBMPlexSansArabic-Regular"),
+    url("/fonts/IBMPlexSansArabic-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local("IBM Plex Sans Arabic Medium"), local("IBMPlexSansArabic-Medium"),
+    url("/fonts/IBMPlexSansArabic-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local("IBM Plex Sans Arabic SemiBold"),
+    local("IBMPlexSansArabic-SemiBold"),
+    url("/fonts/IBMPlexSansArabic-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local("IBM Plex Sans Arabic Bold"), local("IBMPlexSansArabic-Bold"),
+    url("/fonts/IBMPlexSansArabic-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Amiri";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local("Amiri"), local("Amiri-Regular"),
+    url("/fonts/Amiri-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Amiri";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local("Amiri Bold"), local("Amiri-Bold"),
+    url("/fonts/Amiri-Bold.woff2") format("woff2");
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  // أرقام tabular افتراضياً — أرصدة وكميات تصطف رأسياً
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+
+p { margin: 0; max-width: 70ch; }
+
+a {
+  color: var(--info);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+// أرقام/أكواد بأرقام tabular صريحة
+.num,
+.mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+// خط التوقيع/المستند
+.doc-type {
+  font-family: var(--font-doc);
+}
+
+// ---- Focus مرئي دائماً (a11y) ----
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+// ---- Scrollbar هادئ (لا نعيد اختراع الشكل، فقط نهدّئه) ----
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--paper);
+}
+
+// ---- تفضيل تقليل الحركة (غير اختياري) ----
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

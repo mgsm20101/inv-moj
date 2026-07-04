@@ -1,0 +1,208 @@
+<header class="page-head">
+  <a routerLink="/movements" class="back">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+    العودة للحركات
+  </a>
+  <h1>إذن جديد</h1>
+  <p class="page-head__sub">يُحفظ كمسوّدة ثم يُرفع للاعتماد.</p>
+</header>
+
+@if (loading()) {
+  <div class="card"><div class="card__body loading-row">
+    <span class="spinner" aria-hidden="true"></span> جارِ التحميل…
+  </div></div>
+} @else {
+  @if (serverError()) {
+    <div class="alert alert--error" role="alert">
+      <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+        <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+      <span>{{ serverError() }}</span>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="form">
+    <!-- رأس المستند -->
+    <section class="card">
+      <div class="card__header"><h2>بيانات المستند</h2></div>
+      <div class="card__body grid">
+        <div class="field">
+          <label class="field__label" for="vt">نوع الإذن<span class="req">*</span></label>
+          <select id="vt" class="input" formControlName="voucherType">
+            @for (t of typeOptions; track t.value) {
+              <option [ngValue]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="wh">
+            {{ isTransfer() ? 'المخزن المصدر' : 'المخزن' }}<span class="req">*</span>
+          </label>
+          <select id="wh" class="input" formControlName="warehouseId"
+            [class.is-invalid]="form.controls.warehouseId.invalid && form.controls.warehouseId.touched">
+            <option value="">اختر مخزناً…</option>
+            @for (w of warehouses(); track w.id) {
+              <option [value]="w.id">{{ w.nameAr }} ({{ w.code }})</option>
+            }
+          </select>
+        </div>
+
+        @if (isTransfer()) {
+          <div class="field">
+            <label class="field__label" for="tw">مخزن الوجهة<span class="req">*</span></label>
+            <select id="tw" class="input" formControlName="toWarehouseId"
+              [class.is-invalid]="form.controls.toWarehouseId.invalid && form.controls.toWarehouseId.touched">
+              <option value="">اختر مخزناً…</option>
+              @for (w of warehouses(); track w.id) {
+                <option [value]="w.id">{{ w.nameAr }} ({{ w.code }})</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (isAdjustment()) {
+          <div class="field">
+            <label class="field__label" for="adj">نوع التسوية<span class="req">*</span></label>
+            <select id="adj" class="input" formControlName="adjustmentType"
+              [class.is-invalid]="form.controls.adjustmentType.invalid && form.controls.adjustmentType.touched">
+              <option [ngValue]="null">اختر…</option>
+              @for (a of adjustmentOptions; track a.value) {
+                <option [ngValue]="a.value">{{ a.label }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (isReceipt()) {
+          <div class="field">
+            <label class="field__label" for="sup">المورّد<span class="req">*</span></label>
+            <select id="sup" class="input" formControlName="supplierId"
+              [class.is-invalid]="form.controls.supplierId.invalid && form.controls.supplierId.touched">
+              <option value="">اختر مورّداً…</option>
+              @for (s of suppliers(); track s.id) {
+                <option [value]="s.id">{{ s.nameAr }} ({{ s.code }})</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div class="field">
+          <label class="field__label" for="ref">رقم مرجعي</label>
+          <input id="ref" class="input" formControlName="referenceNo" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="cc">مركز التكلفة@if (isIssue()) { <span class="req">*</span> }</label>
+          <input id="cc" class="input" formControlName="costCenter"
+            [class.is-invalid]="form.controls.costCenter.invalid && form.controls.costCenter.touched" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="dept">الجهة الطالبة</label>
+          <input id="dept" class="input" formControlName="requestingDept" />
+        </div>
+        @if (isIssue()) {
+          <div class="field">
+            <label class="field__label" for="recipient">الموظف المستلِم</label>
+            <select id="recipient" class="input" formControlName="recipientEmployeeId">
+              <option value="">بلا مستلِم (لا يُنشئ عهدة)</option>
+              @for (e of employees(); track e.id) {
+                <option [value]="e.id">{{ e.fullNameAr }} ({{ e.employeeNo }})</option>
+              }
+            </select>
+            <p class="field__hint">
+              يلزم تحديده لتحويل الأصناف المستديمة المصروفة تلقائياً لعهدة المستلِم.
+            </p>
+          </div>
+        }
+        <div class="field field--wide">
+          <label class="field__label" for="reason">السبب</label>
+          <input id="reason" class="input" formControlName="reason" />
+        </div>
+      </div>
+    </section>
+
+    <!-- الأسطر -->
+    <section class="card">
+      <div class="card__header lines-head">
+        <h2>الأصناف</h2>
+        <button type="button" class="btn btn--secondary btn--sm" (click)="addLine()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">إضافة سطر</span>
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table class="table lines-editor" formArrayName="lines">
+          <thead>
+            <tr>
+              <th class="c-idx">#</th>
+              <th>الصنف</th>
+              <th class="c-qty">الكمية</th>
+              @if (showUnitCost()) { <th class="c-cost">تكلفة الوحدة</th> }
+              <th>دفعة</th>
+              <th>سيريال</th>
+              <th>الصلاحية</th>
+              <th class="c-act"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of lines.controls; track $index; let i = $index) {
+              <tr [formGroupName]="i">
+                <td class="c-idx num">{{ i + 1 }}</td>
+                <td>
+                  <select class="input input--sm" formControlName="itemId"
+                    [class.is-invalid]="line.get('itemId')?.invalid && line.get('itemId')?.touched">
+                    <option value="">اختر صنفاً…</option>
+                    @for (it of items(); track it.id) {
+                      <option [value]="it.id">{{ it.nameAr }} — {{ it.itemCode }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="c-qty">
+                  <input type="number" step="any" min="0" class="input input--sm num"
+                    formControlName="qty"
+                    [class.is-invalid]="line.get('qty')?.invalid && line.get('qty')?.touched" />
+                </td>
+                @if (showUnitCost()) {
+                  <td class="c-cost">
+                    <input type="number" step="any" min="0" class="input input--sm num" formControlName="unitCost" />
+                  </td>
+                }
+                <td><input class="input input--sm" formControlName="batchNo" /></td>
+                <td><input class="input input--sm num" formControlName="serialNo" dir="ltr" /></td>
+                <td><input type="date" class="input input--sm num" formControlName="expiryDate" /></td>
+                <td class="c-act">
+                  <button type="button" class="iconbtn iconbtn--danger"
+                    (click)="removeLine(i)" [disabled]="lines.length <= 1" aria-label="حذف السطر">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+                      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M6 7h12M9 7V5h6v2M8 7l1 12h6l1-12" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="actions">
+      <a routerLink="/movements" class="btn btn--secondary">إلغاء</a>
+      <button type="submit" class="btn btn--primary" [class.is-loading]="saving()" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span><span class="btn__label">جارِ الحفظ…</span>
+        } @else {
+          <span class="btn__label">حفظ كمسوّدة</span>
+        }
+      </button>
+    </div>
+  </form>
+}

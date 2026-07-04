@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WIMS.Application/WIMS.Application.csproj" />
+    <Project Path="src/WIMS.Domain/WIMS.Domain.csproj" />
+    <Project Path="src/WIMS.Infrastructure/WIMS.Infrastructure.csproj" />
+    <Project Path="src/WIMS.Shared/WIMS.Shared.csproj" />
+    <Project Path="src/WIMS.WebApi/WIMS.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WIMS.Application.Tests/WIMS.Application.Tests.csproj" />
+    <Project Path="tests/WIMS.Domain.Tests/WIMS.Domain.Tests.csproj" />
+    <Project Path="tests/WIMS.IntegrationTests/WIMS.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,99 @@
+<dialog #dlg class="editor editor--wide" (cancel)="onDialogCancel($event)">
+  <header class="editor__head">
+    <h3>
+      {{ isNew() ? 'دور جديد' : isSystem() ? 'دور نظامي (عرض)' : 'تعديل دور' }}
+    </h3>
+    <button type="button" class="iconbtn" (click)="cancel()" aria-label="إغلاق">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </header>
+
+  @if (loading()) {
+    <p class="editor__loading">جارِ التحميل…</p>
+  } @else {
+    @if (isSystem()) {
+      <div class="alert alert--info lockhint" role="note">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+          stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+        </svg>
+        <span>هذا دور نظامي محمي — لا يمكن تعديل بياناته أو صلاحياته أو حذفه.</span>
+      </div>
+    }
+    @if (error()) {
+      <div class="alert alert--error" role="alert">{{ error() }}</div>
+    }
+
+    <form class="editor__body" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="editor__grid2">
+        <div class="field">
+          <label class="field__label" for="re-name">
+            اسم الدور<span class="req">*</span>
+          </label>
+          <input id="re-name" class="input" formControlName="name"
+            [class.is-invalid]="f.name.invalid && f.name.touched" />
+          @if (f.name.invalid && f.name.touched) {
+            <span class="field__error">اسم الدور مطلوب.</span>
+          }
+        </div>
+        <div class="field">
+          <label class="field__label" for="re-desc">الوصف</label>
+          <input id="re-desc" class="input" formControlName="description" />
+        </div>
+      </div>
+
+      <!-- مصفوفة الصلاحيات -->
+      <div class="matrix">
+        <div class="matrix__head">
+          <span class="field__label">الصلاحيات</span>
+          <span class="matrix__count num">{{ selected().size }} مُحدَّدة</span>
+        </div>
+
+        <div class="matrix__grid">
+          @for (mod of modules(); track mod.module) {
+            <div class="matrix__module">
+              <label class="matrix__modhead"
+                [class.is-all]="moduleState(mod) === 'all'"
+                [class.is-some]="moduleState(mod) === 'some'">
+                <input type="checkbox"
+                  [checked]="moduleState(mod) === 'all'"
+                  [indeterminate]="moduleState(mod) === 'some'"
+                  [disabled]="isSystem()"
+                  (change)="toggleModule(mod)" />
+                <b>{{ mod.module }}</b>
+              </label>
+              <ul class="matrix__perms">
+                @for (p of mod.items; track p.key) {
+                  <li>
+                    <label class="matrix__perm" [class.is-on]="isPermSelected(p.key)">
+                      <input type="checkbox" [checked]="isPermSelected(p.key)"
+                        [disabled]="isSystem()" (change)="togglePerm(p.key)" />
+                      <span class="matrix__perm-name">{{ p.name }}</span>
+                      <span class="matrix__perm-key num">{{ p.key }}</span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="editor__actions">
+        <button type="button" class="btn btn--secondary" (click)="cancel()">
+          {{ isSystem() ? 'إغلاق' : 'إلغاء' }}
+        </button>
+        @if (!isSystem()) {
+          <button type="submit" class="btn btn--primary"
+            [class.is-loading]="saving()" [disabled]="saving()">
+            @if (saving()) { <span class="spinner" aria-hidden="true"></span> }
+            <span class="btn__label">حفظ</span>
+          </button>
+        }
+      </div>
+    </form>
+  }
+</dialog>

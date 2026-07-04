@@ -1,0 +1,171 @@
+<header class="page-head">
+  <a routerLink="/movements" class="back">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+    العودة للحركات
+  </a>
+</header>
+
+@if (loading()) {
+  <div class="card"><div class="card__body loading-row">
+    <span class="spinner" aria-hidden="true"></span> جارِ التحميل…
+  </div></div>
+} @else if (error()) {
+  <div class="card"><div class="card__body state--error">
+    <p>{{ error() }}</p>
+    <button class="btn btn--secondary" (click)="back()">العودة للحركات</button>
+  </div></div>
+} @else if (voucher()) {
+  @if (voucher(); as v) {
+  <!-- الترويسة -->
+  <section class="card v-head">
+    <div class="v-head__main">
+      <div class="v-head__title">
+        <h1 class="num">{{ v.voucherNo }}</h1>
+        <span class="badge" [class]="'badge ' + statusBadge[v.status]">
+          <span class="badge__dot"></span>{{ statusLabel[v.status] }}
+        </span>
+        @if (v.transferStatus) {
+          <span class="badge badge--pending"><span class="badge__dot"></span>
+            نقل: {{ transferLabel[v.transferStatus] }}</span>
+        }
+      </div>
+      <p class="v-head__type">{{ typeLabel[v.voucherType] }}</p>
+    </div>
+
+    <dl class="v-meta">
+      <div><dt>المخزن</dt><dd>{{ v.warehouseId ? '✔' : '—' }}
+        @if (v.toWarehouseId) { → مخزن الوجهة }</dd></div>
+      <div><dt>أنشأه</dt><dd>{{ v.createdBy || '—' }}</dd></div>
+      <div><dt>اعتمده</dt><dd>{{ v.approvedBy || '—' }}</dd></div>
+      <div><dt>تاريخ الترحيل</dt>
+        <dd class="num">{{ v.postedAt ? (v.postedAt | date: 'yyyy/MM/dd HH:mm') : '—' }}</dd></div>
+      @if (v.costCenter) { <div><dt>مركز التكلفة</dt><dd>{{ v.costCenter }}</dd></div> }
+      @if (v.reason) { <div class="v-meta__wide"><dt>السبب</dt><dd>{{ v.reason }}</dd></div> }
+    </dl>
+  </section>
+
+  <!-- خطأ إجراء -->
+  @if (actionError()) {
+    <div class="alert alert--error" role="alert">
+      <svg class="alert__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+        <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+      </svg>
+      <span>{{ actionError() }}</span>
+    </div>
+  }
+
+  <!-- الأسطر -->
+  <section class="card">
+    <div class="card__header"><h2>الأصناف ({{ v.lines.length }})</h2></div>
+    <div class="table-wrap">
+      <table class="table lines-table">
+        <thead>
+          <tr>
+            <th class="ta-end">#</th>
+            <th>كود الصنف</th>
+            <th class="ta-end">الكمية</th>
+            <th class="ta-end">تكلفة الوحدة</th>
+            <th class="ta-end">الإجمالي</th>
+            <th>دفعة</th>
+            <th>سيريال</th>
+            <th>الصلاحية</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of v.lines; track l.lineNo) {
+            <tr>
+              <td class="num ta-end">{{ l.lineNo }}</td>
+              <td class="num code">{{ l.itemCode }}</td>
+              <td class="num ta-end">{{ l.qty | number: '1.0-3' }}</td>
+              <td class="num ta-end">{{ l.unitCost | number: '1.2-2' }}</td>
+              <td class="num ta-end">{{ l.qty * l.unitCost | number: '1.2-2' }}</td>
+              <td>{{ l.batchNo || '—' }}</td>
+              <td class="num">{{ l.serialNo || '—' }}</td>
+              <td class="num">{{ l.expiryDate ? (l.expiryDate | date: 'yyyy/MM/dd') : '—' }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="ta-end foot-label">الإجمالي</td>
+            <td class="num ta-end foot-total">{{ totalCost() | number: '1.2-2' }}</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- شريط الإجراءات -->
+  @if (actions().canSubmit || showApprove() || showReject()
+        || actions().canCancel || actions().canConfirmTransfer) {
+    <div class="actionbar">
+      @if (actions().canCancel) {
+        <button class="btn btn--danger" (click)="openCancel()" [disabled]="busy()">إلغاء المستند</button>
+      }
+      <div class="actionbar__spacer"></div>
+      @if (showReject()) {
+        <button class="btn btn--secondary"
+          (click)="openReject()" [disabled]="busy()">رفض</button>
+      }
+      @if (actions().canSubmit) {
+        <button class="btn btn--primary" (click)="submit()" [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">رفع للاعتماد</span>
+        </button>
+      }
+      @if (actions().canConfirmTransfer) {
+        <button class="btn btn--justice" (click)="confirmTransfer()" [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">تأكيد استلام النقل</span>
+        </button>
+      }
+      @if (showApprove()) {
+        <button class="btn btn--justice btn--stamp"
+          (click)="approve()"
+          [class.is-loading]="busy()" [disabled]="busy()">
+          @if (busy()) { <span class="spinner" aria-hidden="true"></span> }
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4" /><path d="M8 13c-1 1-1 3 0 3h8c1 0 1-2 0-3" /><line x1="5" y1="20" x2="19" y2="20" />
+          </svg>
+          <span class="btn__label">اعتماد وختم</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- دمغة الختم: تظهر لحظة الاعتماد -->
+  @if (stamped()) {
+    <div class="stamp-overlay" (click)="stamped.set(false)">
+      <div class="stamp-mark" role="status" aria-label="تم الاعتماد">
+        <svg viewBox="0 0 160 160" aria-hidden="true">
+          <circle cx="80" cy="80" r="72" class="sm-ring" />
+          <circle cx="80" cy="80" r="60" class="sm-ring sm-ring--dash" />
+          <text x="80" y="70" class="sm-text">معتمَد</text>
+          <text x="80" y="104" class="sm-sub">وزارة العدل</text>
+        </svg>
+      </div>
+    </div>
+  }
+
+  <!-- حوارات التأكيد -->
+  <wims-confirm-dialog #rejectDlg
+    title="رفض المستند"
+    message="سيُعاد المستند إلى منشئه. اذكر سبب الرفض."
+    confirmLabel="تأكيد الرفض" [danger]="true"
+    [withReason]="true" reasonPlaceholder="سبب الرفض…"
+    (confirmed)="onReject($event)" />
+
+  <wims-confirm-dialog #cancelDlg
+    title="إلغاء المستند"
+    message="سيُلغى المستند نهائياً. لا يمكن التراجع."
+    confirmLabel="تأكيد الإلغاء" [danger]="true"
+    (confirmed)="onCancel()" />
+  }
+}

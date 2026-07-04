@@ -1,0 +1,134 @@
+:host { display: block; }
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+.page-head h1 { font-size: var(--fs-display); }
+.page-head__sub { margin-top: 2px; color: var(--text-muted); font-size: var(--fs-body); }
+.page-head__actions { display: flex; gap: var(--space-sm); flex: none; }
+
+// ---- شريط الأدوات ----
+.toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+.search {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+.search__icon {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.search__input { width: 100%; padding-inline-start: 40px; }
+.field--inline { min-width: 180px; }
+.field--inline .input { min-width: 180px; }
+
+// ---- الجدول ----
+.table-wrap { overflow-x: auto; }
+.items-table {
+  min-width: 960px;
+  th.ta-end,
+  td.ta-end { text-align: end; }
+}
+.code { font-weight: var(--fw-medium); color: var(--ink); white-space: nowrap; }
+
+.name-cell { display: flex; flex-direction: column; line-height: 1.35; }
+.name-ar { color: var(--ink); }
+.name-en {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  direction: ltr;
+  text-align: start;
+  font-variant-numeric: normal;
+}
+
+// وسم نوع الصنف (محايد، لا لون زاعق)
+.type-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-small);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.type-tag[data-type="3"] { // خطر
+  background: var(--error-soft);
+  border-color: #f0c4bf;
+  color: #8a1c14;
+}
+.type-tag[data-type="4"] { // قابل للتلف
+  background: var(--warning-soft);
+  border-color: #efd9ad;
+  color: #7a5211;
+}
+
+// رقائق التتبّع
+.tracks { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.chip {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 0.6875rem;
+  background: var(--info-soft);
+  color: #1a4468;
+  white-space: nowrap;
+}
+.chip--none { background: transparent; color: var(--text-muted); }
+
+// ---- الحالات ----
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xl) var(--space-lg);
+  svg { width: 40px; height: 40px; }
+}
+.state--error {
+  color: #8a1c14;
+  p { color: var(--text); max-width: 44ch; }
+  button { margin-top: var(--space-xs); }
+}
+
+// هيكل عظمي للتحميل
+.skl {
+  display: block;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--paper), #e9edf0, var(--paper));
+  background-size: 200% 100%;
+  animation: skl-shimmer 1.2s ease-in-out infinite;
+}
+.skl-row td { vertical-align: middle; }
+@keyframes skl-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skl { animation: none; }
+}
+
+.card__foot { border-top: 1px solid var(--border); }
+
+@media (max-width: 640px) {
+  .page-head { flex-direction: column; }
+  .page-head__actions { width: 100%; }
+  .page-head__actions .btn { flex: 1; }
+}

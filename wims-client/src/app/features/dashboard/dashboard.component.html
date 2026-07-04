@@ -1,0 +1,132 @@
+<header class="page-head">
+  <div>
+    <h1>الرئيسية</h1>
+    <p class="page-head__sub">مؤشّرات تشغيلية حيّة لحالة المخازن والحركات.</p>
+  </div>
+  <a routerLink="/reports" class="btn btn--secondary">
+    <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true"
+      fill="none" stroke="currentColor" stroke-width="1.7"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 5h16M4 12h10M4 19h6" />
+    </svg>
+    <span class="btn__label">التقارير</span>
+  </a>
+</header>
+
+@if (error()) {
+  <div class="card"><div class="card__body state--error">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9" /><line x1="12" y1="8" x2="12" y2="13" />
+      <circle cx="12" cy="16.5" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+    <p>{{ error() }}</p>
+    <button class="btn btn--secondary" (click)="load()">إعادة المحاولة</button>
+  </div></div>
+} @else {
+  <!-- قيمة المخزون: سطر واحد هادئ، لا بطاقة رقم ضخمة -->
+  @if (!loading()) {
+    <p class="value-line">
+      إجمالي قيمة المخزون:
+      <span class="value-line__num num">{{ stockValue() | number: '1.2-2' }}</span>
+      <span class="value-line__cur">ريال</span>
+    </p>
+  }
+
+  <section class="kpis" aria-label="مؤشّرات سريعة">
+    @if (loading()) {
+      @for (t of skeletonTiles; track $index) {
+        <article class="tile"><span class="skl skl--val"></span><span class="skl skl--lbl"></span></article>
+      }
+    } @else {
+      @for (k of kpis(); track k.label) {
+        @if (k.link) {
+          <a class="tile tile--link" [attr.data-tone]="k.tone" [routerLink]="k.link">
+            <span class="tile__value num">{{ k.value | number }}</span>
+            <span class="tile__label">{{ k.label }}</span>
+            <span class="tile__hint">{{ k.hint }}</span>
+          </a>
+        } @else {
+          <article class="tile" [attr.data-tone]="k.tone">
+            <span class="tile__value num">{{ k.value | number }}</span>
+            <span class="tile__label">{{ k.label }}</span>
+            <span class="tile__hint">{{ k.hint }}</span>
+          </article>
+        }
+      }
+    }
+  </section>
+
+  <div class="panels">
+    <!-- أعلى العجوزات -->
+    <section class="card panel">
+      <header class="card__header panel__head">
+        <h2>أعلى العجوزات</h2>
+        <a routerLink="/reports" class="panel__all">تقرير تحت الحد الأدنى</a>
+      </header>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>الصنف</th>
+              <th class="ta-end">الرصيد</th>
+              <th class="ta-end">الحد الأدنى</th>
+              <th class="ta-end">العجز</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading()) {
+              @for (r of [1,2,3,4,5]; track r) {
+                <tr class="skl-row">@for (c of [1,2,3,4]; track c) { <td><span class="skl"></span></td> }</tr>
+              }
+            } @else {
+              @for (s of data()?.topShortages ?? []; track s.itemCode) {
+                <tr>
+                  <td><span class="num code">{{ s.itemCode }}</span>
+                    <span class="sub">{{ s.itemName }}</span></td>
+                  <td class="num ta-end">{{ s.onHand | number: '1.0-3' }}</td>
+                  <td class="num ta-end">{{ s.minStock | number: '1.0-3' }}</td>
+                  <td class="num ta-end shortage">{{ s.shortage | number: '1.0-3' }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        @if (!loading() && (data()?.topShortages?.length ?? 0) === 0) {
+          <p class="panel__empty">لا عجوزات — كل الأصناف فوق حدودها الدنيا. ✔</p>
+        }
+      </div>
+    </section>
+
+    <!-- آخر التنبيهات الحرجة -->
+    <section class="card panel">
+      <header class="card__header panel__head">
+        <h2>آخر التنبيهات الحرجة</h2>
+        <a routerLink="/inventory" class="panel__all">كل التنبيهات</a>
+      </header>
+      <div class="alerts-list">
+        @if (loading()) {
+          @for (r of [1,2,3,4]; track r) { <div class="alert-item"><span class="skl skl--lbl"></span></div> }
+        } @else {
+          @for (a of data()?.recentCriticalAlerts ?? []; track a.id) {
+            <div class="alert-item">
+              <span class="badge" [class]="'badge ' + sevBadge[a.severity]">
+                <span class="badge__dot"></span>{{ sevLabel[a.severity] }}
+              </span>
+              <div class="alert-item__body">
+                <p class="alert-item__msg">{{ a.message }}</p>
+                <p class="alert-item__meta">
+                  {{ typeLabel[a.alertType] }} · {{ a.itemName }} ·
+                  <span class="num">{{ a.detectedAt | date: 'yyyy/MM/dd' }}</span>
+                </p>
+              </div>
+            </div>
+          }
+          @if ((data()?.recentCriticalAlerts?.length ?? 0) === 0) {
+            <p class="panel__empty">لا تنبيهات حرجة حالياً. ✔</p>
+          }
+        }
+      </div>
+    </section>
+  </div>
+}

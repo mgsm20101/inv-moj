@@ -1,0 +1,60 @@
+:host { display: block; }
+
+.page-head { margin-bottom: var(--space-lg); }
+.page-head h1 { font-size: var(--fs-display); margin-top: var(--space-xs); }
+.page-head__sub { margin-top: 4px; color: var(--text-muted); font-size: var(--fs-body); }
+.back {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--fs-small); color: var(--text-muted);
+  &:hover { color: var(--ink); text-decoration: none; }
+  svg { width: 16px; height: 16px; }
+}
+
+.form { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+}
+.field--wide { grid-column: 1 / -1; }
+.req { color: var(--error); margin-inline-start: 2px; }
+
+.loading-row { display: flex; align-items: center; gap: var(--space-sm); color: var(--text-muted); }
+
+.alert {
+  display: flex; align-items: center; gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm);
+  font-size: var(--fs-small); border: 1px solid transparent; margin-bottom: var(--space-md);
+  .alert__icon { width: 20px; height: 20px; flex: none; }
+}
+.alert--error { background: var(--error-soft); border-color: #f0c4bf; color: #8a1c14; }
+
+// ---- محرّر الأسطر ----
+.lines-head { display: flex; align-items: center; justify-content: space-between; }
+.btn--sm { min-height: 34px; padding: 0 var(--space-md); font-size: var(--fs-small); }
+
+.table-wrap { overflow-x: auto; }
+.lines-editor {
+  min-width: 820px;
+  th, td { vertical-align: middle; padding: 6px 8px; }
+  .c-idx { width: 40px; text-align: center; color: var(--text-muted); }
+  .c-qty { width: 110px; }
+  .c-cost { width: 130px; }
+  .c-act { width: 44px; }
+}
+.input--sm { min-height: 34px; padding: 0 var(--space-sm); width: 100%; }
+select.input--sm { min-width: 160px; }
+
+.iconbtn {
+  display: grid; place-items: center; width: 34px; height: 34px;
+  border: none; background: transparent; border-radius: var(--radius-sm);
+  color: var(--text-muted); cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  svg { width: 18px; height: 18px; }
+  &:hover:not(:disabled) { background: var(--hover-tint); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+.iconbtn--danger:hover:not(:disabled) { background: var(--error-soft); color: var(--error); }
+
+.actions { display: flex; justify-content: flex-end; gap: var(--space-sm); }
