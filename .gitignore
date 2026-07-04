@@ -38,7 +38,8 @@ secrets.json
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 
-## ملفات Markdown — لا تُرفع للمستودع البعيد، باستثناء README.md وCHANGELOG.md
+## ملفات Markdown — لا تُرفع للمستودع البعيد، باستثناء README.md وCHANGELOG.md في الجذر فقط
+## (بدون / في البداية، !README.md كانت هتستثني أي README.md في أي مجلد فرعي كمان)
 *.md
-!README.md
-!CHANGELOG.md
+!/README.md
+!/CHANGELOG.md
