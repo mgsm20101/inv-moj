@@ -9,11 +9,15 @@ import { WarehouseDto } from '../../core/models/voucher.models';
 import {
   CreateCategoryRequest,
   CreateEmployeeRequest,
+  CreateSupplierRequest,
   CreateUnitRequest,
   CreateWarehouseRequest,
   EmployeeDetailDto,
+  SupplierDetailDto,
+  SupplierDto,
   UpdateCategoryRequest,
   UpdateEmployeeRequest,
+  UpdateSupplierRequest,
   UpdateUnitRequest,
   UpdateWarehouseRequest,
   WarehouseDetailDto,
@@ -79,6 +83,20 @@ export class MasterDataService {
   }
   updateUnit(id: string, body: UpdateUnitRequest): Observable<void> {
     return this.http.put<void>(`${this.base}/units/${id}`, body);
+  }
+
+  // ---- الموردون ----
+  getSuppliers(): Observable<SupplierDto[]> {
+    return this.http.get<SupplierDto[]>(`${this.base}/suppliers`);
+  }
+  getSupplier(id: string): Observable<SupplierDetailDto> {
+    return this.http.get<SupplierDetailDto>(`${this.base}/suppliers/${id}`);
+  }
+  createSupplier(body: CreateSupplierRequest): Observable<string> {
+    return this.http.post<string>(`${this.base}/suppliers`, body);
+  }
+  updateSupplier(id: string, body: UpdateSupplierRequest): Observable<void> {
+    return this.http.put<void>(`${this.base}/suppliers/${id}`, body);
   }
 
   // ---- مساعد: قائمة المستخدمين (لاختيار أمين المخزن / ربط الموظف) ----

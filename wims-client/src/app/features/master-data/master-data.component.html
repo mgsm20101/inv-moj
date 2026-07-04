@@ -1,7 +1,7 @@
 <header class="page-head">
   <div>
     <h1>البيانات الأساسية</h1>
-    <p class="page-head__sub">إدارة المخازن والموظفين والتصنيفات ووحدات القياس.</p>
+    <p class="page-head__sub">إدارة المخازن والموظفين والتصنيفات ووحدات القياس والموردين.</p>
   </div>
 </header>
 
@@ -20,6 +20,10 @@
       (click)="setTab('categories')">التصنيفات</button>
     <button type="button" class="seg" [class.is-active]="tab() === 'units'"
       (click)="setTab('units')">وحدات القياس</button>
+  }
+  @if (canViewSuppliers) {
+    <button type="button" class="seg" [class.is-active]="tab() === 'suppliers'"
+      (click)="setTab('suppliers')">الموردون</button>
   }
 </nav>
 
@@ -322,5 +326,84 @@
 
   @if (editingUnit() !== undefined) {
     <wims-unit-editor [unit]="editingUnit()!" (closed)="closeUnitEditor($event)" />
+  }
+}
+
+<!-- ======================= الموردون ======================= -->
+@if (tab() === 'suppliers') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>الموردون</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadSuppliers()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Suppliers.Manage'"
+          (click)="openNewSupplier()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">مورّد جديد</span>
+        </button>
+      </div>
+    </div>
+
+    @if (suppliersError()) {
+      <div class="alert alert--error" role="alert">{{ suppliersError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الكود</th>
+            <th>الاسم</th>
+            <th>الرقم الضريبي</th>
+            <th>الهاتف</th>
+            <th>الحالة</th>
+            @if (canManageSuppliers) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (suppliersLoading()) {
+            <tr><td [attr.colspan]="canManageSuppliers ? 6 : 5" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (s of suppliers() ?? []; track s.id) {
+              <tr>
+                <td class="num code">{{ s.code }}</td>
+                <td>{{ s.nameAr }}</td>
+                <td class="num muted">{{ s.taxNumber || '—' }}</td>
+                <td class="num muted">{{ s.phone || '—' }}</td>
+                <td>
+                  @if (s.isActive) {
+                    <span class="badge badge--approved"><span class="badge__dot"></span>نشط</span>
+                  } @else {
+                    <span class="badge badge--draft"><span class="badge__dot"></span>معطّل</span>
+                  }
+                </td>
+                @if (canManageSuppliers) {
+                  <td class="ta-end">
+                    <button type="button" class="btn btn--secondary btn--sm"
+                      (click)="openEditSupplier(s)">تحرير</button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!suppliersLoading() && (suppliers()?.length ?? 0) === 0 && !suppliersError()) {
+        <p class="cell-note cell-note--empty">لا يوجد موردون.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingSupplier() !== undefined) {
+    <wims-supplier-editor [supplier]="editingSupplier()!" (closed)="closeSupplierEditor($event)" />
   }
 }

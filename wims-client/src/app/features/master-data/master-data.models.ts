@@ -125,3 +125,54 @@ export interface UpdateUnitRequest {
   nameAr: string;
   isBaseUnit: boolean;
 }
+
+// ---- الموردون ----
+
+/** مطابق لـ SupplierDto (GET /api/suppliers). */
+export interface SupplierDto {
+  id: string;
+  code: string;
+  nameAr: string;
+  taxNumber: string | null;
+  phone: string | null;
+  isActive: boolean;
+}
+
+/** مطابق لـ SupplierDetailDto (GET /api/suppliers/{id}). */
+export interface SupplierDetailDto {
+  id: string;
+  code: string;
+  nameAr: string;
+  nameEn: string | null;
+  taxNumber: string | null;
+  commercialReg: string | null;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  isActive: boolean;
+}
+
+export interface CreateSupplierRequest {
+  code: string;
+  nameAr: string;
+  nameEn?: string | null;
+  taxNumber?: string | null;
+  commercialReg?: string | null;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+}
+
+export interface UpdateSupplierRequest {
+  nameAr: string;
+  nameEn?: string | null;
+  taxNumber?: string | null;
+  commercialReg?: string | null;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  isActive: boolean;
+}

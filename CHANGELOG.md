@@ -16,6 +16,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ---
 
+## [1.3.0] — 2026-07-05
+
+### Added
+- **Suppliers management (الموردون)**: a new tab on the **البيانات الأساسية** (master-data) screen to list, add, and edit suppliers — mirroring the existing reference-data tabs. The backend gained `GET /api/suppliers/{id}` and `PUT /api/suppliers/{id}` (list + create already existed); the `<dialog>` editor covers code (immutable after creation), Arabic/English name, tax number, commercial registration, contact person, phone, email, address, and active status. Gated by `Suppliers.View` / `Suppliers.Manage`, and the master-data sidebar entry now also opens for supplier-only users.
+
+---
+
+## [1.2.2] — 2026-07-05
+
+### Fixed
+- **User photos/avatars not displaying in production (CSP)**: `SecurityHeadersMiddleware` set `img-src 'self' data:`, which blocked the `blob:` object-URLs used to render user photos and avatars (images are fetched as blobs so the JWT is passed). They worked on the Angular dev server (no CSP applied) but the browser silently blocked them on the deployed site — the image looked "missing". Added `blob:` to `img-src`.
+
+---
+
 ## [1.2.1] — 2026-07-04
 
 ### Changed
