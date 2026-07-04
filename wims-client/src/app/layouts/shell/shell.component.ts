@@ -97,6 +97,7 @@ export class ShellComponent implements OnInit {
 
   /** رقم الإصدار من package.json (المصدر الموحّد المُحدَّث في سير عمل الإصدارات). */
   readonly version = pkg.version;
+  readonly year = new Date().getFullYear();
 
   private readonly allNav: NavItem[] = [
     { label: 'الرئيسية', path: '/dashboard', icon: 'home', perm: [NavPermission.Dashboard] },
