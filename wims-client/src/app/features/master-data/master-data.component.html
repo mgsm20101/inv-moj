@@ -1,0 +1,328 @@
+<header class="page-head">
+  <div>
+    <h1>البيانات الأساسية</h1>
+    <p class="page-head__sub">إدارة المخازن والموظفين والتصنيفات ووحدات القياس.</p>
+  </div>
+</header>
+
+<!-- التبويبات -->
+<nav class="segbar" aria-label="أقسام البيانات الأساسية">
+  @if (canViewWarehouses) {
+    <button type="button" class="seg" [class.is-active]="tab() === 'warehouses'"
+      (click)="setTab('warehouses')">المخازن</button>
+  }
+  @if (canViewEmployees) {
+    <button type="button" class="seg" [class.is-active]="tab() === 'employees'"
+      (click)="setTab('employees')">الموظفون</button>
+  }
+  @if (canViewCatalog) {
+    <button type="button" class="seg" [class.is-active]="tab() === 'categories'"
+      (click)="setTab('categories')">التصنيفات</button>
+    <button type="button" class="seg" [class.is-active]="tab() === 'units'"
+      (click)="setTab('units')">وحدات القياس</button>
+  }
+</nav>
+
+<!-- ======================= المخازن ======================= -->
+@if (tab() === 'warehouses') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>المخازن</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadWarehouses()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Warehouses.Manage'"
+          (click)="openNewWarehouse()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">مخزن جديد</span>
+        </button>
+      </div>
+    </div>
+
+    @if (warehousesError()) {
+      <div class="alert alert--error" role="alert">{{ warehousesError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الكود</th>
+            <th>الاسم</th>
+            <th>النوع</th>
+            <th>المنطقة</th>
+            <th>الحالة</th>
+            @if (canManageWarehouses) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (warehousesLoading()) {
+            <tr><td [attr.colspan]="canManageWarehouses ? 6 : 5" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (w of warehouses() ?? []; track w.id) {
+              <tr>
+                <td class="num code">{{ w.code }}</td>
+                <td>{{ w.nameAr }}</td>
+                <td>{{ warehouseTypeLabel(w.warehouseType) }}</td>
+                <td class="muted">{{ w.region || '—' }}</td>
+                <td>
+                  @if (w.isActive) {
+                    <span class="badge badge--approved"><span class="badge__dot"></span>نشط</span>
+                  } @else {
+                    <span class="badge badge--draft"><span class="badge__dot"></span>معطّل</span>
+                  }
+                </td>
+                @if (canManageWarehouses) {
+                  <td class="ta-end">
+                    <button type="button" class="btn btn--secondary btn--sm"
+                      (click)="openEditWarehouse(w)">تحرير</button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!warehousesLoading() && (warehouses()?.length ?? 0) === 0 && !warehousesError()) {
+        <p class="cell-note cell-note--empty">لا توجد مخازن.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingWarehouse() !== undefined) {
+    <wims-warehouse-editor [warehouse]="editingWarehouse()!" (closed)="closeWarehouseEditor($event)" />
+  }
+}
+
+<!-- ======================= الموظفون ======================= -->
+@if (tab() === 'employees') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>الموظفون</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadEmployees()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Employees.Manage'"
+          (click)="openNewEmployee()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">موظف جديد</span>
+        </button>
+      </div>
+    </div>
+
+    @if (employeesError()) {
+      <div class="alert alert--error" role="alert">{{ employeesError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الرقم الوظيفي</th>
+            <th>الاسم</th>
+            <th>الإدارة</th>
+            <th>مركز التكلفة</th>
+            <th>الحالة</th>
+            @if (canManageEmployees) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (employeesLoading()) {
+            <tr><td [attr.colspan]="canManageEmployees ? 6 : 5" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (e of employees() ?? []; track e.id) {
+              <tr>
+                <td class="num code">{{ e.employeeNo }}</td>
+                <td>{{ e.fullNameAr }}</td>
+                <td>{{ e.department }}</td>
+                <td class="num muted">{{ e.costCenter }}</td>
+                <td>
+                  <span [class]="'badge ' + empStatusBadge(e.status)">
+                    <span class="badge__dot"></span>{{ empStatusLabel(e.status) }}
+                  </span>
+                </td>
+                @if (canManageEmployees) {
+                  <td class="ta-end">
+                    <button type="button" class="btn btn--secondary btn--sm"
+                      (click)="openEditEmployee(e)">تحرير</button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!employeesLoading() && (employees()?.length ?? 0) === 0 && !employeesError()) {
+        <p class="cell-note cell-note--empty">لا يوجد موظفون.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingEmployee() !== undefined) {
+    <wims-employee-editor [employee]="editingEmployee()!" (closed)="closeEmployeeEditor($event)" />
+  }
+}
+
+<!-- ======================= التصنيفات ======================= -->
+@if (tab() === 'categories') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>التصنيفات</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadCategories()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Items.Manage'"
+          (click)="openNewCategory()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">تصنيف جديد</span>
+        </button>
+      </div>
+    </div>
+
+    @if (categoriesError()) {
+      <div class="alert alert--error" role="alert">{{ categoriesError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الكود</th>
+            <th>الاسم</th>
+            <th>المسار</th>
+            <th class="ta-end">المستوى</th>
+            @if (canManageCatalog) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (categoriesLoading()) {
+            <tr><td [attr.colspan]="canManageCatalog ? 5 : 4" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (c of categories() ?? []; track c.id) {
+              <tr>
+                <td class="num code">{{ c.code }}</td>
+                <td>{{ c.nameAr }}</td>
+                <td class="num muted">{{ c.path }}</td>
+                <td class="num ta-end">{{ c.level }}</td>
+                @if (canManageCatalog) {
+                  <td class="ta-end">
+                    <button type="button" class="btn btn--secondary btn--sm"
+                      (click)="openEditCategory(c)">تحرير</button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!categoriesLoading() && (categories()?.length ?? 0) === 0 && !categoriesError()) {
+        <p class="cell-note cell-note--empty">لا توجد تصنيفات.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingCategory() !== undefined) {
+    <wims-category-editor [category]="editingCategory()!" (closed)="closeCategoryEditor($event)" />
+  }
+}
+
+<!-- ======================= وحدات القياس ======================= -->
+@if (tab() === 'units') {
+  <section class="card">
+    <div class="card__header list-head">
+      <h2>وحدات القياس</h2>
+      <div class="list-head__actions">
+        <button type="button" class="iconbtn" (click)="loadUnits()" aria-label="تحديث" title="تحديث">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4v5h5M20 20v-5h-5" /><path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+          </svg>
+        </button>
+        <button type="button" class="btn btn--primary" *appHasPermission="'Items.Manage'"
+          (click)="openNewUnit()">
+          <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span class="btn__label">وحدة جديدة</span>
+        </button>
+      </div>
+    </div>
+
+    @if (unitsError()) {
+      <div class="alert alert--error" role="alert">{{ unitsError() }}</div>
+    }
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الرمز</th>
+            <th>الاسم</th>
+            <th>أساسية</th>
+            <th>الحالة</th>
+            @if (canManageCatalog) { <th class="ta-end">إجراءات</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @if (unitsLoading()) {
+            <tr><td [attr.colspan]="canManageCatalog ? 5 : 4" class="cell-note">جارِ التحميل…</td></tr>
+          } @else {
+            @for (u of units() ?? []; track u.id) {
+              <tr>
+                <td class="num code">{{ u.code }}</td>
+                <td>{{ u.nameAr }}</td>
+                <td>{{ u.isBaseUnit ? 'نعم' : 'لا' }}</td>
+                <td>
+                  @if (u.isActive) {
+                    <span class="badge badge--approved"><span class="badge__dot"></span>نشط</span>
+                  } @else {
+                    <span class="badge badge--draft"><span class="badge__dot"></span>معطّل</span>
+                  }
+                </td>
+                @if (canManageCatalog) {
+                  <td class="ta-end">
+                    <button type="button" class="btn btn--secondary btn--sm"
+                      (click)="openEditUnit(u)">تحرير</button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (!unitsLoading() && (units()?.length ?? 0) === 0 && !unitsError()) {
+        <p class="cell-note cell-note--empty">لا توجد وحدات.</p>
+      }
+    </div>
+  </section>
+
+  @if (editingUnit() !== undefined) {
+    <wims-unit-editor [unit]="editingUnit()!" (closed)="closeUnitEditor($event)" />
+  }
+}

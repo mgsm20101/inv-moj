@@ -44,6 +44,34 @@ public sealed class CreateUnitCommandHandler(IAppDbContext db)
     }
 }
 
+// ── تعديل وحدة قياس ── (الرمز غير قابل للتعديل)
+public sealed record UpdateUnitCommand(Guid Id, string NameAr, bool IsBaseUnit) : ICommand<Result>;
+
+public sealed class UpdateUnitCommandValidator : AbstractValidator<UpdateUnitCommand>
+{
+    public UpdateUnitCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty();
+        RuleFor(x => x.NameAr).NotEmpty().WithMessage("اسم الوحدة مطلوب.").MaximumLength(50);
+    }
+}
+
+public sealed class UpdateUnitCommandHandler(IAppDbContext db)
+    : IRequestHandler<UpdateUnitCommand, Result>
+{
+    public async Task<Result> Handle(UpdateUnitCommand request, CancellationToken cancellationToken)
+    {
+        var unit = await db.UnitsOfMeasure.FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
+        if (unit is null)
+            return Result.Failure(Error.NotFound("Unit", "وحدة القياس غير موجودة."));
+
+        unit.NameAr = request.NameAr.Trim();
+        unit.IsBaseUnit = request.IsBaseUnit;
+        await db.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
 // ── قائمة الوحدات ──
 public sealed record GetUnitsQuery : IQuery<IReadOnlyList<UnitDto>>;
 

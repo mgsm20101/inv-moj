@@ -13,6 +13,11 @@ public sealed record WarehouseDto(
     Guid Id, string Code, string NameAr, WarehouseType WarehouseType,
     WarehouseStatus Status, string? Region, bool UsesLocations, bool IsActive);
 
+// تفاصيل كاملة (تشمل KeeperUserId) لتعبئة نموذج التعديل — غير مضمّنة في قائمة العرض.
+public sealed record WarehouseDetailDto(
+    Guid Id, string Code, string NameAr, WarehouseType WarehouseType,
+    string? Region, Guid KeeperUserId, bool UsesLocations, bool IsActive);
+
 // ── إنشاء مخزن ──
 public sealed record CreateWarehouseCommand : ICommand<Result<Guid>>
 {
@@ -61,6 +66,47 @@ public sealed class CreateWarehouseCommandHandler(IAppDbContext db)
     }
 }
 
+// ── تعديل مخزن ── (الكود غير قابل للتعديل)
+public sealed record UpdateWarehouseCommand : ICommand<Result>
+{
+    public Guid Id { get; init; }
+    public string NameAr { get; init; } = string.Empty;
+    public WarehouseType WarehouseType { get; init; } = WarehouseType.Main;
+    public string? Region { get; init; }
+    public Guid KeeperUserId { get; init; }
+    public bool UsesLocations { get; init; }
+}
+
+public sealed class UpdateWarehouseCommandValidator : AbstractValidator<UpdateWarehouseCommand>
+{
+    public UpdateWarehouseCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty();
+        RuleFor(x => x.NameAr).NotEmpty().WithMessage("اسم المخزن مطلوب.").MaximumLength(150);
+        RuleFor(x => x.KeeperUserId).NotEmpty().WithMessage("أمين المخزن مطلوب.");
+        RuleFor(x => x.WarehouseType).IsInEnum();
+    }
+}
+
+public sealed class UpdateWarehouseCommandHandler(IAppDbContext db)
+    : IRequestHandler<UpdateWarehouseCommand, Result>
+{
+    public async Task<Result> Handle(UpdateWarehouseCommand request, CancellationToken cancellationToken)
+    {
+        var warehouse = await db.Warehouses.FirstOrDefaultAsync(w => w.Id == request.Id, cancellationToken);
+        if (warehouse is null)
+            return Result.Failure(Error.NotFound("Warehouse", "المخزن غير موجود."));
+
+        warehouse.NameAr = request.NameAr.Trim();
+        warehouse.WarehouseType = request.WarehouseType;
+        warehouse.Region = request.Region?.Trim();
+        warehouse.KeeperUserId = request.KeeperUserId;
+        warehouse.UsesLocations = request.UsesLocations;
+        await db.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}
+
 // ── قائمة المخازن ──
 public sealed record GetWarehousesQuery : IQuery<IReadOnlyList<WarehouseDto>>;
 
@@ -73,4 +119,24 @@ public sealed class GetWarehousesQueryHandler(IAppDbContext db)
             .Select(w => new WarehouseDto(
                 w.Id, w.Code, w.NameAr, w.WarehouseType, w.Status, w.Region, w.UsesLocations, w.IsActive))
             .ToListAsync(cancellationToken);
+}
+
+// ── تفاصيل مخزن واحد (للتعديل) ──
+public sealed record GetWarehouseByIdQuery(Guid Id) : IQuery<Result<WarehouseDetailDto>>;
+
+public sealed class GetWarehouseByIdQueryHandler(IAppDbContext db)
+    : IRequestHandler<GetWarehouseByIdQuery, Result<WarehouseDetailDto>>
+{
+    public async Task<Result<WarehouseDetailDto>> Handle(GetWarehouseByIdQuery request, CancellationToken cancellationToken)
+    {
+        var dto = await db.Warehouses.AsNoTracking()
+            .Where(w => w.Id == request.Id)
+            .Select(w => new WarehouseDetailDto(
+                w.Id, w.Code, w.NameAr, w.WarehouseType, w.Region, w.KeeperUserId, w.UsesLocations, w.IsActive))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (dto is null)
+            return Error.NotFound("Warehouse", "المخزن غير موجود.");
+        return dto;
+    }
 }

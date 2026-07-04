@@ -1,0 +1,89 @@
+<dialog #dlg class="editor" (cancel)="onDialogCancel($event)">
+  <header class="editor__head">
+    <h3>{{ isNew() ? 'مخزن جديد' : 'تعديل مخزن' }}</h3>
+    <button type="button" class="iconbtn" (click)="cancel()" aria-label="إغلاق">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+        stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </header>
+
+  @if (loading()) {
+    <p class="editor__loading">جارِ التحميل…</p>
+  } @else {
+    @if (error()) {
+      <div class="alert alert--error" role="alert">{{ error() }}</div>
+    }
+
+    <form class="editor__body" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="editor__grid2">
+        <div class="field">
+          <label class="field__label" for="wh-code">الكود<span class="req">*</span></label>
+          <input id="wh-code" class="input" formControlName="code" dir="ltr"
+            autocomplete="off" [class.is-invalid]="f.code.invalid && f.code.touched" />
+          @if (f.code.invalid && f.code.touched) {
+            <span class="field__error">الكود مطلوب (10 أحرف كحدّ أقصى).</span>
+          } @else if (!isNew()) {
+            <span class="field__hint">الكود غير قابل للتعديل.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="wh-type">النوع<span class="req">*</span></label>
+          <select id="wh-type" class="input" formControlName="warehouseType">
+            @for (t of types; track t.value) {
+              <option [ngValue]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="wh-name">الاسم<span class="req">*</span></label>
+        <input id="wh-name" class="input" formControlName="nameAr"
+          [class.is-invalid]="f.nameAr.invalid && f.nameAr.touched" />
+        @if (f.nameAr.invalid && f.nameAr.touched) {
+          <span class="field__error">اسم المخزن مطلوب.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="wh-keeper">أمين المخزن<span class="req">*</span></label>
+        <select id="wh-keeper" class="input" formControlName="keeperUserId"
+          [class.is-invalid]="f.keeperUserId.invalid && f.keeperUserId.touched">
+          <option value="">— اختر —</option>
+          @for (u of users(); track u.id) {
+            <option [value]="u.id">{{ u.fullName }} ({{ u.userName }})</option>
+          }
+        </select>
+        @if (f.keeperUserId.invalid && f.keeperUserId.touched) {
+          <span class="field__error">أمين المخزن مطلوب.</span>
+        }
+      </div>
+
+      <div class="editor__grid2">
+        <div class="field">
+          <label class="field__label" for="wh-region">المنطقة/الفرع</label>
+          <input id="wh-region" class="input" formControlName="region" />
+        </div>
+
+        <div class="field field--check">
+          <label class="check">
+            <input type="checkbox" formControlName="usesLocations" />
+            <span>يستخدم مواقع تفصيلية (رفوف/صناديق)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="editor__actions">
+        <button type="button" class="btn btn--secondary" (click)="cancel()">إلغاء</button>
+        <button type="submit" class="btn btn--primary"
+          [class.is-loading]="saving()" [disabled]="saving()">
+          @if (saving()) { <span class="spinner" aria-hidden="true"></span> }
+          <span class="btn__label">حفظ</span>
+        </button>
+      </div>
+    </form>
+  }
+</dialog>
