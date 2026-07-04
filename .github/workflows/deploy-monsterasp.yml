@@ -1,12 +1,19 @@
 name: نشر WIMS على MonsterASP.NET
 
-# يعمل يدوياً فقط (workflow_dispatch) — لا نشر تلقائي عند كل push، تجنّباً لنشر
-# غير مقصود لبيئة الاستضافة العامة. شغّله من تبويب Actions في GitHub عند الحاجة.
+# يعمل تلقائياً فقط عند دمج pull request في فرع main — لا نشر عند كل push أو عند
+# إغلاق PR بلا دمج. يبقى workflow_dispatch متاحاً للتشغيل اليدوي عند الحاجة
+# (إعادة نشر بلا PR) من تبويب Actions في GitHub.
 on:
+  pull_request:
+    types: [closed]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   deploy:
+    # ينشر فقط عند دمج فعلي للـ PR في main (merged == true) أو عند التشغيل اليدوي.
+    # بدون هذا الشرط سيعمل أيضاً عند إغلاق PR دون دمجه.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
