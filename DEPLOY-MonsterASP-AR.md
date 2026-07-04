@@ -37,32 +37,25 @@
 
 اختر إحدى الطرق التالية:
 
-### أ) WebDeploy مباشرة من سطر الأوامر (الأسرع — لو نزّلت ملف `*.publishSettings`)
-
-لوحة MonsterASP توفّر زر "Download Publish Profile" ينزّل ملف `<اسم موقعك>-WebDeploy.publishSettings`. هذا الملف فيه بيانات الاتصال **وكلمة مرور WebDeploy فعلية بصيغة نص صريح** — تعامل معه كأي كلمة مرور حساسة:
-
-- **لا** تضعه داخل مجلد المشروع ولا تلصق محتواه في أي مكان مشترك (بما في ذلك محادثات الذكاء الاصطناعي) — لو حصل ذلك، أدخل لوحة MonsterASP وأعد توليد بيانات WebDeploy من جديد.
-- بيانات الموقع غير السرّية (الدومين، اسم الموقع، اسم المستخدم) موجودة مسبقاً في [`src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml`](src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml) — **بدون** كلمة المرور. إن تغيّر اسم موقعك عدّل هذا الملف بنفس القيم الجديدة من ملف الـ publishSettings بتاعك (باستثناء `userPWD`).
-
-انشر مباشرة من الطرفية (كلمة المرور تُكتب وقت التشغيل فقط، ولا تُحفظ في أي ملف):
-
-```powershell
-dotnet publish src\WIMS.WebApi -c Release `
-  /p:DeployOnBuild=true `
-  /p:PublishProfile=MonsterASP `
-  /p:Username=site77694 `
-  /p:Password="الصق_كلمة_المرور_هنا_وقت_التشغيل_فقط"
-```
-
-(استبدل `site77694` باسم المستخدم الظاهر في ملف الـ publishSettings بتاعك لو مختلف). هذا الأمر يبني وينشر مباشرة لموقعك عبر MSDeploy بدون الحاجة لـ FTP يدوي. لو ظهر خطأ يتعلّق بعدم توفّر أداة Web Deploy محلياً، استخدم الطريقة (ب) أو (ج) بدلاً منه.
-
-### ب) FTP (الأسهل مع FileZilla)
+### أ) FTP (المُوصى بها — مضمونة الآن) بـ FileZilla
 
 اتصل ببيانات FTP من الخطوة 1، وارفع **محتوى** مجلد `dist\MonsterASP-Package\` (وليس المجلد نفسه) إلى المجلد الجذر لموقعك على الخادم (عادة `wwwroot` أو الجذر مباشرة حسب تسمية اللوحة).
 
-### ج) File Manager
+### ب) File Manager
 
 لو اللوحة تدعم رفع وفكّ ضغط ZIP مباشرة، ارفع `dist\MonsterASP-Package.zip` وفكّ ضغطه في مجلد الموقع.
+
+### ج) WebDeploy من سطر الأوامر — ⚠️ معطوبة حالياً على SDK 10.0.202، لا تستخدمها
+
+> **حالة معروفة:** `dotnet publish ... /p:DeployOnBuild=true /p:PublishProfile=MonsterASP` يفشل بخطأ
+> `MSB4006: There is a circular dependency in the target dependency graph involving target "Publish"`
+> على .NET SDK 10.0.202 (وربما إصدارات قريبة). تم تكرار الخطأ فعلياً ومحاولة `dotnet msbuild -t:Publish`
+> كبديل ولم يُجدِ — نفس الخطأ. هذا خلل معروف في تعارض بين مسار `dotnet publish` الحديث ومسار
+> WebDeploy القديم (`Microsoft.NET.Sdk.Publish`)، وليس خطأً في إعداد المشروع. استخدم الطريقة (أ) أو (ب) بدلاً منه.
+>
+> لو أصررت على WebDeploy لاحقاً (مثلاً بعد تحديث SDK يُصلح المشكلة، أو لو ثبّتّ Visual Studio ونشرت من خلاله
+> بدل CLI)، ملف [`MonsterASP.pubxml`](src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml) جاهز
+> ومُعدّ ببيانات موقعك (بدون كلمة المرور) لهذا الغرض بالضبط.
 
 ## الخطوة 4 — تعبئة الإعدادات الحسّاسة على الخادم مباشرة
 
@@ -106,6 +99,7 @@ dotnet publish src\WIMS.WebApi -c Release `
 | الموقع يفتح لكن الواجهة (Angular) بيضاء | فشل بناء `ng build` أو لم تُنسخ الملفات لـ `wwwroot` قبل النشر | أعد تشغيل `publish-monsterasp.ps1` وتأكّد من عدم وجود أخطاء في مرحلة `ng build` |
 | خطأ اتصال بقاعدة البيانات | سلسلة الاتصال غير مطابقة لما أعطته اللوحة، أو نسيت `Encrypt=True;TrustServerCertificate=True` | انسخ السلسلة كما هي من لوحة التحكّم دون تعديل يدوي |
 | 403 عند أي طلب API | لو فعّلت نطاقاً مخصّصاً، حدّث `AllowedHosts` في `appsettings.Production.json` ليطابقه | عدّل القيمة وأعد رفع الملف فقط (لا حاجة لإعادة نشر كامل) |
+| `MSB4006: circular dependency ... target "Publish"` عند النشر | خلل معروف في SDK 10.0.202 عند خلط `dotnet publish` مع WebDeploy (`DeployOnBuild=true`) | لا تستخدم WebDeploy من سطر الأوامر حالياً — استخدم FTP أو File Manager (الطريقة أ/ب أعلاه) |
 
 ## ملاحظة أمنية ختامية
 

@@ -19,6 +19,9 @@
 - `.gitignore`: استبعاد `*.publishSettings` (يحتوي كلمة مرور WebDeploy فعلية عند تنزيله من لوحة الاستضافة).
 - `appsettings.Production.json`: سلسلة اتصال قاعدة MSSQL الفعلية على MonsterASP (بدون كلمة المرور) و`AllowedHosts` مقيَّد بالدومين الفعلي `invmoj.runasp.net` — جاهزة تلقائياً في كل حزمة MonsterASP قادمة، تبقى فقط تعبئة كلمة المرور على الخادم.
 
+### أُصلح (توثيق)
+- `DEPLOY-MonsterASP-AR.md`: عُلِّمت طريقة "WebDeploy من سطر الأوامر" كمعطوبة حالياً — تُكرِّر خطأ `MSB4006: circular dependency` (تحقّقنا منه فعلياً على .NET SDK 10.0.202، وجرّبنا `dotnet msbuild -t:Publish` كبديل ولم يُصلحه). أصبحت FTP/File Manager الطريقة الموصى بها بدلاً منها.
+
 ---
 
 ## [1.0.0.0] — 2026-07-04
