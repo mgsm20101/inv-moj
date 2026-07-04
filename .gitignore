@@ -32,6 +32,7 @@ src/WIMS.WebApi/wwwroot/*
 ## Secrets
 appsettings.*.Local.json
 secrets.json
+*.publishSettings
 
 ## حالة Claude Code المحلية (خاصة بالجلسة/الجهاز — ليست جزءاً من المشروع)
 .claude/settings.local.json

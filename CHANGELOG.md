@@ -14,7 +14,9 @@
 
 ## [غير مُصدَر]
 
-_لا تغييرات جديدة مسجَّلة بعد آخر إصدار._
+### أُضيف
+- `src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml`: ملف نشر WebDeploy (بيانات غير سرّية فقط) + قسم جديد في `DEPLOY-MonsterASP-AR.md` للنشر المباشر من سطر الأوامر عبر `dotnet publish /p:DeployOnBuild=true`.
+- `.gitignore`: استبعاد `*.publishSettings` (يحتوي كلمة مرور WebDeploy فعلية عند تنزيله من لوحة الاستضافة).
 
 ---
 
