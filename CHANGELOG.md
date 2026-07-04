@@ -14,6 +14,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ## [Unreleased]
 
+### Added
+- **Suppliers management (الموردون)**: a new tab on the **البيانات الأساسية** (master-data) screen to list, add, and edit suppliers — mirroring the existing reference-data tabs. The backend gained `GET /api/suppliers/{id}` and `PUT /api/suppliers/{id}` (list + create already existed); the `<dialog>` editor covers code (immutable after creation), Arabic/English name, tax number, commercial registration, contact person, phone, email, address, and active status. Gated by `Suppliers.View` / `Suppliers.Manage`, and the master-data sidebar entry now also opens for supplier-only users.
+
 ---
 
 ## [1.2.2] — 2026-07-05

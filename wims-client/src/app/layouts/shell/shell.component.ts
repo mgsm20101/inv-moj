@@ -106,7 +106,7 @@ export class ShellComponent implements OnInit {
     { label: 'العُهد والموافقات', path: '/approvals', icon: 'stamp', perm: [NavPermission.Approvals] },
     { label: 'الجرد والتنبيهات', path: '/inventory', icon: 'clipboard', perm: [NavPermission.Alerts] },
     { label: 'التقارير', path: '/reports', icon: 'chart', perm: [NavPermission.Reports] },
-    { label: 'البيانات الأساسية', path: '/master-data', icon: 'database', perm: ['Warehouses.View', 'Items.View', 'Employees.View'] },
+    { label: 'البيانات الأساسية', path: '/master-data', icon: 'database', perm: ['Warehouses.View', 'Items.View', 'Employees.View', 'Suppliers.View'] },
     { label: 'الإدارة والصلاحيات', path: '/admin', icon: 'shield', perm: ['Users.View', 'Roles.View'] },
   ];
 

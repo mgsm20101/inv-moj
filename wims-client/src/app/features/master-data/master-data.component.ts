@@ -15,14 +15,15 @@ import {
 } from '../../core/models/custody.models';
 import { WarehouseDto } from '../../core/models/voucher.models';
 import { HasPermissionDirective } from '../../shared/has-permission.directive';
-import { WAREHOUSE_TYPE_LABEL, WarehouseType } from './master-data.models';
+import { SupplierDto, WAREHOUSE_TYPE_LABEL, WarehouseType } from './master-data.models';
 import { MasterDataService } from './master-data.service';
 import { CategoryEditorComponent } from './categories/category-editor.component';
 import { EmployeeEditorComponent } from './employees/employee-editor.component';
+import { SupplierEditorComponent } from './suppliers/supplier-editor.component';
 import { UnitEditorComponent } from './units/unit-editor.component';
 import { WarehouseEditorComponent } from './warehouses/warehouse-editor.component';
 
-type Tab = 'warehouses' | 'employees' | 'categories' | 'units';
+type Tab = 'warehouses' | 'employees' | 'categories' | 'units' | 'suppliers';
 
 /**
  * البيانات الأساسية — شاشة موحّدة بتبويبات لإدارة الكيانات المرجعية:
@@ -38,6 +39,7 @@ type Tab = 'warehouses' | 'employees' | 'categories' | 'units';
     EmployeeEditorComponent,
     CategoryEditorComponent,
     UnitEditorComponent,
+    SupplierEditorComponent,
   ],
   templateUrl: './master-data.component.html',
   styleUrl: './master-data.component.scss',
@@ -54,13 +56,17 @@ export class MasterDataComponent {
   readonly canManageEmployees = this.auth.hasPermission('Employees.Manage');
   readonly canViewCatalog = this.auth.hasPermission('Items.View');
   readonly canManageCatalog = this.auth.hasPermission('Items.Manage');
+  readonly canViewSuppliers = this.auth.hasPermission('Suppliers.View');
+  readonly canManageSuppliers = this.auth.hasPermission('Suppliers.Manage');
 
   readonly tab = signal<Tab>(
     this.canViewWarehouses
       ? 'warehouses'
       : this.canViewEmployees
         ? 'employees'
-        : 'categories',
+        : this.canViewCatalog
+          ? 'categories'
+          : 'suppliers',
   );
 
   constructor() {
@@ -77,6 +83,7 @@ export class MasterDataComponent {
     if (t === 'employees' && this.employees() === null) this.loadEmployees();
     if (t === 'categories' && this.categories() === null) this.loadCategories();
     if (t === 'units' && this.units() === null) this.loadUnits();
+    if (t === 'suppliers' && this.suppliers() === null) this.loadSuppliers();
   }
 
   // ---- ملصقات مساعدة ----
@@ -212,5 +219,36 @@ export class MasterDataComponent {
   closeUnitEditor(saved: boolean): void {
     this.editingUnit.set(undefined);
     if (saved) this.loadUnits();
+  }
+
+  // ---- الموردون ----
+  readonly suppliers = signal<SupplierDto[] | null>(null);
+  readonly suppliersLoading = signal(false);
+  readonly suppliersError = signal<string | null>(null);
+  readonly editingSupplier = signal<SupplierDto | null | undefined>(undefined);
+
+  loadSuppliers(): void {
+    this.suppliersLoading.set(true);
+    this.suppliersError.set(null);
+    this.service.getSuppliers().subscribe({
+      next: (s) => {
+        this.suppliers.set(s);
+        this.suppliersLoading.set(false);
+      },
+      error: (e) => {
+        this.suppliersError.set(problemDetail(e, 'تعذّر تحميل الموردين.'));
+        this.suppliersLoading.set(false);
+      },
+    });
+  }
+  openNewSupplier(): void {
+    this.editingSupplier.set(null);
+  }
+  openEditSupplier(s: SupplierDto): void {
+    this.editingSupplier.set(s);
+  }
+  closeSupplierEditor(saved: boolean): void {
+    this.editingSupplier.set(undefined);
+    if (saved) this.loadSuppliers();
   }
 }
