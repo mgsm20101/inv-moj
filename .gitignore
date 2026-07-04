@@ -32,3 +32,7 @@ src/WIMS.WebApi/wwwroot/*
 ## Secrets
 appsettings.*.Local.json
 secrets.json
+
+## حالة Claude Code المحلية (خاصة بالجلسة/الجهاز — ليست جزءاً من المشروع)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
