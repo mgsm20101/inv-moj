@@ -11,21 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: تجهيز .NET 8
+      # SDK 10 مطلوب هنا لأن الحل بصيغة WIMS.slnx (XML الجديدة) — SDK 8 مش بيعرف يقرأها
+      # خالص (MSB4068: The element <Solution> is unrecognized). المشروع نفسه لسه مستهدف
+      # net8.0 (مثبَّت في Directory.Build.props) فده SDK البناء بس، مش TargetFramework.
+      # ملحوظة: خلل MSB4006 (circular dependency) اللي واجهناه قبل كده كان مرتبط تحديداً
+      # بـ DeployOnBuild=true (WebDeploy المدمج في MSBuild)، وده مش مستخدَم هنا أصلاً —
+      # النشر هنا عادي (dotnet publish بلا DeployOnBuild) والرفع عبر أكشن منفصل، فمفيش
+      # داعي لتفادي SDK 10 في هذا السياق.
+      - name: تجهيز .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
-
-      # صورة windows-latest فيها SDKs متعددة مثبَّتة مسبقاً (بينها SDK 10 الأحدث)، وبما إن
-      # المستودع بلا global.json، دوتنت بيختار الأحدث المتاح تلقائياً متجاهلاً setup-dotnet
-      # أعلاه — وده سبب ظهور "sdk\10.0.301" في اللوج رغم طلب 8.0.x صراحةً. نكتب global.json
-      # هنا فقط (غير مُلتزَم بالمستودع نفسه، عشان الجهاز المحلي بلا SDK 8 مثبَّت) لتثبيت
-      # قرار الإصدار داخل هذا الـ job بس.
-      - name: تثبيت SDK 8 لهذا الـ job فقط (لا يُلتزم بالمستودع)
-        shell: pwsh
-        run: |
-          '{"sdk":{"version":"8.0.100","rollForward":"latestMinor"}}' | Out-File -FilePath global.json -Encoding utf8
-          Get-Content global.json
+          dotnet-version: '10.0.x'
 
       - name: تجهيز Node.js
         uses: actions/setup-node@v4
