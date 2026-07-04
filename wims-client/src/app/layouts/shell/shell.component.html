@@ -3,11 +3,15 @@
   <aside class="sidenav">
     <div class="sidenav__brand">
       <span class="sidenav__seal" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="9.5" />
-          <line x1="12" y1="7" x2="12" y2="15" />
-          <line x1="8.5" y1="9.5" x2="15.5" y2="9.5" />
-        </svg>
+        @if (logoOk()) {
+          <img class="sidenav__seal-img" src="logo.png" alt="" (error)="logoOk.set(false)" />
+        } @else {
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9.5" />
+            <line x1="12" y1="7" x2="12" y2="15" />
+            <line x1="8.5" y1="9.5" x2="15.5" y2="9.5" />
+          </svg>
+        }
       </span>
       <span class="sidenav__title">
         <b>WIMS</b>
@@ -54,9 +58,6 @@
             </svg>
           </span>
           <span class="navlink__label">{{ item.label }}</span>
-          @if (item.phase) {
-            <span class="navlink__phase" title="المرحلة {{ item.phase }}">{{ item.phase }}</span>
-          }
         </a>
       }
     </nav>
@@ -98,7 +99,11 @@
           [attr.aria-expanded]="userMenuOpen()"
           aria-haspopup="menu"
         >
-          <span class="user__avatar" aria-hidden="true">{{ initial() }}</span>
+          @if (avatarUrl()) {
+            <img class="user__avatar user__avatar--img" [src]="avatarUrl()" alt="" aria-hidden="true" />
+          } @else {
+            <span class="user__avatar" aria-hidden="true">{{ initial() }}</span>
+          }
           <span class="user__meta">
             <b>{{ userName() || 'مستخدم' }}</b>
             <small>{{ primaryRole() }}</small>
@@ -111,6 +116,19 @@
         @if (userMenuOpen()) {
           <div class="usermenu__backdrop" (click)="closeUserMenu()"></div>
           <div class="usermenu__pop" role="menu">
+            <label class="usermenu__item" role="menuitem">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+                stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h3l1.5-2h7L18 8h2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
+                <circle cx="12" cy="13" r="3.2" />
+              </svg>
+              تغيير الصورة الشخصية
+              <input type="file" accept="image/png,image/jpeg,image/webp" hidden
+                (change)="onChangePhoto($event)" />
+            </label>
+            @if (photoError()) {
+              <p class="usermenu__error" role="alert">{{ photoError() }}</p>
+            }
             <button class="usermenu__item" role="menuitem" (click)="openChangePassword()">
               <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
                 stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">

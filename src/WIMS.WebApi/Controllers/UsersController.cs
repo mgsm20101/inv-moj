@@ -48,6 +48,30 @@ public sealed class UsersController(ISender sender) : ControllerBase
     [Authorize(Policy = PermissionKeys.Users.Manage)]
     public async Task<IActionResult> AssignRoles(Guid id, [FromBody] AssignRolesRequest body, CancellationToken ct)
         => (await sender.Send(new AssignUserRolesCommand(id, body.RoleIds ?? []), ct)).ToActionResult();
+
+    /// <summary>رفع/تحديث صورة المستخدم (multipart). تُخزَّن في قاعدة البيانات.</summary>
+    [HttpPost("{id:guid}/photo")]
+    [Authorize(Policy = PermissionKeys.Users.Manage)]
+    [RequestSizeLimit(3 * 1024 * 1024)]
+    public async Task<IActionResult> UploadPhoto(Guid id, IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { message = "الملف مطلوب." });
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        return (await sender.Send(new UploadUserPhotoCommand(id, ms.ToArray(), file.ContentType), ct))
+            .ToActionResult();
+    }
+
+    /// <summary>صورة المستخدم — تتطلّب صلاحية عرض المستخدمين.</summary>
+    [HttpGet("{id:guid}/photo")]
+    [Authorize(Policy = PermissionKeys.Users.View)]
+    public async Task<IActionResult> GetPhoto(Guid id, CancellationToken ct)
+    {
+        var photo = await sender.Send(new GetUserPhotoQuery(id), ct);
+        return photo is null ? NotFound() : File(photo.Data, photo.ContentType);
+    }
 }
 
 public sealed record UpdateUserRequest(string FullName, string? Email);

@@ -61,6 +61,7 @@ export class VoucherCreateComponent implements OnInit {
     ([v, label]) => ({ value: Number(v) as AdjustmentType, label }),
   );
   readonly VoucherType = VoucherType;
+  readonly todayIso = new Date().toISOString().slice(0, 10);
 
   readonly form = this.fb.nonNullable.group({
     voucherType: [VoucherType.Issue, [Validators.required]],
@@ -69,7 +70,7 @@ export class VoucherCreateComponent implements OnInit {
     supplierId: [''],
     adjustmentType: [null as AdjustmentType | null],
     referenceNo: [''],
-    costCenter: ['', [Validators.required]],
+    documentDate: [new Date().toISOString().slice(0, 10)],
     requestingDept: [''],
     reason: [''],
     recipientEmployeeId: [''],
@@ -99,20 +100,16 @@ export class VoucherCreateComponent implements OnInit {
       const to = this.form.controls.toWarehouseId;
       const adj = this.form.controls.adjustmentType;
       const sup = this.form.controls.supplierId;
-      const cc = this.form.controls.costCenter;
       to.clearValidators();
       adj.clearValidators();
       sup.clearValidators();
-      cc.clearValidators();
       if (t === VoucherType.Transfer) to.setValidators([Validators.required]);
       if (t === VoucherType.Adjustment) adj.setValidators([Validators.required]);
-      // المورّد إلزامي في الاستلام، ومركز التكلفة إلزامي في الصرف (تطابق قواعد الـbackend).
+      // المورّد إلزامي في الاستلام (تطابق قواعد الـbackend).
       if (t === VoucherType.Receipt) sup.setValidators([Validators.required]);
-      if (t === VoucherType.Issue) cc.setValidators([Validators.required]);
       to.updateValueAndValidity();
       adj.updateValueAndValidity();
       sup.updateValueAndValidity();
-      cc.updateValueAndValidity();
     });
 
     forkJoin({
@@ -171,7 +168,7 @@ export class VoucherCreateComponent implements OnInit {
       supplierId: this.isReceipt() ? raw.supplierId || null : null,
       adjustmentType: this.isAdjustment() ? raw.adjustmentType : null,
       referenceNo: raw.referenceNo || null,
-      costCenter: raw.costCenter || null,
+      documentDate: raw.documentDate || null,
       requestingDept: raw.requestingDept || null,
       reason: raw.reason || null,
       recipientEmployeeId: this.isIssue() ? raw.recipientEmployeeId || null : null,

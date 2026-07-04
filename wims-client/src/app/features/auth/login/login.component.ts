@@ -27,6 +27,8 @@ export class LoginComponent {
   readonly showPassword = signal(false);
   readonly loading = signal(false);
   readonly serverError = signal<string | null>(null);
+  /** يعرض شعار وزارة العدل المرفوع؛ يسقط للختم المرسوم إن غاب الملف. */
+  readonly logoOk = signal(true);
 
   readonly form = this.fb.nonNullable.group({
     username: ['', [Validators.required]],

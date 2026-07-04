@@ -131,12 +131,66 @@ public sealed record AssignUserRolesCommand(Guid Id, IReadOnlyList<Guid> RoleIds
 public sealed class AssignUserRolesCommandHandler(IIdentityAdminService admin, ICurrentUser current)
     : IRequestHandler<AssignUserRolesCommand, Result>
 {
-    public Task<Result> Handle(AssignUserRolesCommand request, CancellationToken ct)
+    public async Task<Result> Handle(AssignUserRolesCommand request, CancellationToken ct)
     {
-        // منع المستخدم من تعديل أدوار نفسه (تفادياً لإسقاط صلاحياته سهواً).
+        // منع المستخدم من *تغيير* أدوار نفسه (تفادياً لإسقاط صلاحياته أو تصعيدها سهواً).
+        // لكن حفظ الملف الشخصي دون تغيير الأدوار مسموح (no-op) حتى لا يُعطَّل تعديل الاسم/الصورة.
         if (string.Equals(current.UserId, request.Id.ToString(), StringComparison.OrdinalIgnoreCase))
-            return Task.FromResult(Result.Failure(Error.Forbidden("User.Self", "لا يمكنك تعديل أدوار حسابك الخاص.")));
+        {
+            var detail = await admin.GetUserAsync(request.Id, ct);
+            var currentRoles = detail.IsSuccess ? detail.Value.RoleIds.ToHashSet() : [];
+            var targetRoles = (request.RoleIds ?? []).ToHashSet();
+            if (!currentRoles.SetEquals(targetRoles))
+                return Result.Failure(Error.Forbidden("User.Self", "لا يمكنك تعديل أدوار حسابك الخاص."));
+            return Result.Success();
+        }
 
-        return admin.SetUserRolesAsync(request.Id, request.RoleIds ?? [], ct);
+        return await admin.SetUserRolesAsync(request.Id, request.RoleIds ?? [], ct);
     }
+}
+
+// ─────────────────────── رفع صورة المستخدم ───────────────────────
+
+public sealed record UploadUserPhotoCommand(Guid Id, byte[] Data, string ContentType) : ICommand<Result>;
+
+public sealed class UploadUserPhotoCommandValidator : AbstractValidator<UploadUserPhotoCommand>
+{
+    private static readonly string[] AllowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    private const int MaxBytes = 2 * 1024 * 1024; // 2MB
+
+    public UploadUserPhotoCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty();
+        RuleFor(x => x.Data).NotEmpty().WithMessage("الصورة مطلوبة.")
+            .Must(d => d.Length <= MaxBytes).WithMessage("حجم الصورة يجب ألا يتجاوز 2 ميجابايت.");
+        RuleFor(x => x.ContentType).Must(t => AllowedTypes.Contains(t))
+            .WithMessage("صيغة الصورة غير مدعومة (المسموح: JPEG أو PNG أو WebP).");
+    }
+}
+
+public sealed class UploadUserPhotoCommandHandler(IIdentityAdminService admin)
+    : IRequestHandler<UploadUserPhotoCommand, Result>
+{
+    public Task<Result> Handle(UploadUserPhotoCommand request, CancellationToken ct)
+        => admin.SetUserPhotoAsync(request.Id, request.Data, request.ContentType, ct);
+}
+
+// ─────────────────────── جلب صورة المستخدم (استعلام، غير مُدقَّق) ───────────────────────
+
+public sealed record GetUserPhotoQuery(Guid Id) : IQuery<UserPhotoDto?>;
+
+public sealed class GetUserPhotoQueryHandler(IIdentityAdminService admin)
+    : IRequestHandler<GetUserPhotoQuery, UserPhotoDto?>
+{
+    public Task<UserPhotoDto?> Handle(GetUserPhotoQuery request, CancellationToken ct)
+        => admin.GetUserPhotoAsync(request.Id, ct);
+}
+
+public sealed record UserHasPhotoQuery(Guid Id) : IQuery<bool>;
+
+public sealed class UserHasPhotoQueryHandler(IIdentityAdminService admin)
+    : IRequestHandler<UserHasPhotoQuery, bool>
+{
+    public Task<bool> Handle(UserHasPhotoQuery request, CancellationToken ct)
+        => admin.UserHasPhotoAsync(request.Id, ct);
 }

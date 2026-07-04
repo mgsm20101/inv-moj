@@ -15,6 +15,10 @@ public sealed class CreateVoucherCommandHandler(IAppDbContext db)
         if (request.Lines.Count == 0)
             return Error.Validation("Voucher.Lines", "يجب أن يحتوي السند على سطر واحد على الأقل.");
 
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (request.DocumentDate is { } docDate && docDate > today)
+            return Error.Validation("Voucher.DocumentDate", "تاريخ الإذن لا يمكن أن يكون في المستقبل.");
+
         var warehouse = await db.Warehouses.FirstOrDefaultAsync(w => w.Id == request.WarehouseId, ct);
         if (warehouse is null)
             return Error.NotFound("Warehouse", "المخزن غير موجود.");
@@ -39,7 +43,7 @@ public sealed class CreateVoucherCommandHandler(IAppDbContext db)
             SupplierId = request.SupplierId,
             SourceVoucherId = request.SourceVoucherId,
             ReferenceNo = request.ReferenceNo?.Trim(),
-            CostCenter = request.CostCenter?.Trim(),
+            DocumentDate = request.DocumentDate ?? today,
             RequestingDept = request.RequestingDept?.Trim(),
             Reason = request.Reason?.Trim(),
             RecipientEmployeeId = request.RecipientEmployeeId,
@@ -49,7 +53,6 @@ public sealed class CreateVoucherCommandHandler(IAppDbContext db)
         };
 
         var lineNo = 1;
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         foreach (var input in request.Lines)
         {
             if (!items.TryGetValue(input.ItemId, out var item))
@@ -119,8 +122,7 @@ public sealed class CreateVoucherCommandHandler(IAppDbContext db)
                 break;
 
             case VoucherType.Issue:
-                if (string.IsNullOrWhiteSpace(r.CostCenter))
-                    return Result.Failure(Error.Validation("CostCenter", "مركز التكلفة مطلوب في إذن الصرف."));
+                // لا تحقق إضافي — أُزيل اشتراط مركز التكلفة (حُذف من النظام).
                 break;
 
             case VoucherType.Transfer:

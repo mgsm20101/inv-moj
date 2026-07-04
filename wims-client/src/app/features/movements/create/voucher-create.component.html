@@ -97,9 +97,10 @@
           <input id="ref" class="input" formControlName="referenceNo" />
         </div>
         <div class="field">
-          <label class="field__label" for="cc">مركز التكلفة@if (isIssue()) { <span class="req">*</span> }</label>
-          <input id="cc" class="input" formControlName="costCenter"
-            [class.is-invalid]="form.controls.costCenter.invalid && form.controls.costCenter.touched" />
+          <label class="field__label" for="docdate">تاريخ الإذن</label>
+          <input id="docdate" class="input" type="date" formControlName="documentDate"
+            [max]="todayIso" />
+          <span class="field__hint">للبيانات التاريخية — افتراضيًا تاريخ اليوم.</span>
         </div>
         <div class="field">
           <label class="field__label" for="dept">الجهة الطالبة</label>
@@ -145,7 +146,7 @@
               <th class="c-idx">#</th>
               <th>الصنف</th>
               <th class="c-qty">الكمية</th>
-              @if (showUnitCost()) { <th class="c-cost">تكلفة الوحدة</th> }
+              @if (showUnitCost()) { <th class="c-cost">تكلفة الوحدة (ج.م)</th> }
               <th>دفعة</th>
               <th>سيريال</th>
               <th>الصلاحية</th>

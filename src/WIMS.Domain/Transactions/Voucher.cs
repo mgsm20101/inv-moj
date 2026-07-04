@@ -33,7 +33,13 @@ public class Voucher : BaseEntity
     public Guid? SourceVoucherId { get; set; }
 
     public string? ReferenceNo { get; set; }
-    public string? CostCenter { get; set; }
+
+    /// <summary>
+    /// تاريخ الإذن المرجعي — يحدّده المستخدم لدعم إدخال البيانات التاريخية (بأثر رجعي).
+    /// افتراضيًا تاريخ اليوم. لا يعيد ترتيب دفتر المخزون أو حساب WAC (يبقى ترتيب الإدخال).
+    /// </summary>
+    public DateOnly? DocumentDate { get; set; }
+
     public string? RequestingDept { get; set; }
     public string? Reason { get; set; }
 

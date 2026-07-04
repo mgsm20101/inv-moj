@@ -16,6 +16,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ---
 
+## [1.2.0] — 2026-07-04
+
+Client-feedback pass on the deployed system (login/branding, currency, terminology, and two new features).
+
+### Added
+- **Reference date for vouchers (تاريخ الإذن)**: `Voucher.DocumentDate` (`DateOnly?`, migration `ClientFeedback_v1_2`) — a user-editable document date that defaults to today, so historical/back-dated data can be entered. It is validated (cannot be in the future), shown on the voucher detail, editable on the create form, and used as the transaction date column in the item-card report (falls back to `PostedAt` for pre-existing rows). It intentionally does **not** re-order the stock ledger or recompute WAC — posting stays in entry order.
+- **User photos**: `ApplicationUser.PhotoData` (`varbinary`) + `PhotoContentType`, stored in the database. New `POST /api/users/{id}/photo` (multipart, `Users.Manage`) and `GET /api/users/{id}/photo` (`Users.View`) endpoints, plus **self-service** `GET`/`POST /api/me/photo` (any authenticated user can view and change **their own** photo, no `Users.Manage` needed) and a `hasPhoto` flag on `GET /api/me`. Upload validated to JPEG/PNG/WebP ≤ 2 MB. The Angular user editor gains an avatar picker + preview; the users table and the top-bar user menu show the photo (fallback to the initial letter); the top-bar menu gains a **"تغيير الصورة الشخصية"** item. Photos are fetched as blobs so the JWT is passed.
+- **Fix (self profile save):** editing your own account no longer fails on the self-role guard. `AssignUserRolesCommand` now only blocks an *actual change* to your own roles (a no-op save with unchanged roles succeeds), so an admin can update their own name/photo. Changing your own roles is still blocked by design.
+
+### Changed
+- **Login screen**: reordered the branding block (وزارة العدل → قطاع التطوير التقني ومركز المعلومات القضائي → نظام إدارة المخازن والمخزون → WIMS), replaced the tagline "سجلٌّ رسمي · دخول موثّق" with the rights line "جميع الحقوق محفوظة لقطاع التطوير التقني ومركز المعلومات القضائي — وزارة العدل", removed the "أدخل بيانات اعتمادك…" sub-prompt.
+- **Logo**: the login screen, the sidebar, and the browser favicon now use the uploaded Ministry emblem `wims-client/public/logo.png` (with a graceful fallback to the drawn SVG seal if the file is absent).
+- **Currency → Egyptian Pound**: replaced "ريال" with "ج.م" on the dashboard and added the "ج.م" label to monetary columns/totals across the item catalog, custody statement, voucher detail, and voucher create screens.
+- **Terminology + format**: renamed the user-facing term "الهوية الوطنية" → "الرقم القومي" everywhere it is displayed (employee form label + error, employee-import column header, search hints, and backend validation messages). The `NationalId` property/API contract name is unchanged, but its validation was switched from the old 10-digit format to the **14-digit Egyptian national number** (`^\d{14}$` in both front- and back-end, import row check, and the DB column widened `nvarchar(10)`→`nvarchar(14)` via migration `NationalId14Digits`). Any pre-existing 10-digit records remain stored but will fail validation when next edited.
+
+### Removed
+- **Cost centre (مركز التكلفة)** removed from the whole system: dropped `Employee.CostCenter` and `Voucher.CostCenter` columns (migration `ClientFeedback_v1_2`), removed from all CQRS commands/DTOs/validators, the employee-import template (`مركز التكلفة` column no longer required), the issue-voucher requirement, and all Angular forms/tables/models.
+- **Sidebar phase numbers**: removed the small phase badges (١–٦) that appeared next to the navigation links.
+
+### Fixed
+- **Modal close button (✕) rendered unstyled in every pop-up** (warehouse/unit/category/employee/user/role editors, change-password): `.iconbtn` was defined only inside a few component-scoped stylesheets, so Angular's view encapsulation left the standalone dialog components' close buttons without any styling. Promoted `.iconbtn` to the global `styles/_components.scss` so every modal's close icon renders correctly.
+
+---
+
 ## [1.1.0] — 2026-07-04
 
 ### Fixed

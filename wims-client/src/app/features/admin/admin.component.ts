@@ -107,6 +107,23 @@ export class AdminComponent {
   readonly usersError = signal<string | null>(null);
   readonly editingUserId = signal<string | null | undefined>(undefined); // undefined=مغلق، null=جديد
 
+  /** صور المستخدمين (ObjectURL) مفهرسة بالمعرّف — تُجلب عبر Blob لتمرير التوكن. */
+  readonly userPhotos = signal<Record<string, string>>({});
+  userPhoto(id: string): string | null {
+    return this.userPhotos()[id] ?? null;
+  }
+
+  private loadUserPhotos(users: UserSummary[]): void {
+    for (const u of users) {
+      if (!u.hasPhoto) continue;
+      this.service.getUserPhoto(u.id).subscribe({
+        next: (blob) =>
+          this.userPhotos.update((m) => ({ ...m, [u.id]: URL.createObjectURL(blob) })),
+        error: () => {},
+      });
+    }
+  }
+
   loadUsers(): void {
     this.usersLoading.set(true);
     this.usersError.set(null);
@@ -114,6 +131,7 @@ export class AdminComponent {
       next: (u) => {
         this.users.set(u);
         this.usersLoading.set(false);
+        this.loadUserPhotos(u);
       },
       error: (e) => {
         this.usersError.set(problemDetail(e, 'تعذّر تحميل المستخدمين.'));

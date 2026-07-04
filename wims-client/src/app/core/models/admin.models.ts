@@ -7,6 +7,7 @@ export interface UserSummary {
   fullName: string;
   email: string;
   isActive: boolean;
+  hasPhoto: boolean;
   roles: string[];
 }
 
@@ -17,6 +18,7 @@ export interface UserDetail {
   fullName: string;
   email: string;
   isActive: boolean;
+  hasPhoto: boolean;
   roleIds: string[];
   roles: string[];
 }

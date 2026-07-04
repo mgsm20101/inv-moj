@@ -1,6 +1,8 @@
+import { HttpClient } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  OnInit,
   computed,
   inject,
   signal,
@@ -9,6 +11,7 @@ import {
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { NavPermission } from '../../core/auth/permission-catalog';
+import { environment } from '../../../environments/environment';
 import { ChangePasswordDialogComponent } from '../../features/admin/change-password/change-password-dialog.component';
 import pkg from '../../../../package.json';
 
@@ -16,7 +19,6 @@ interface NavItem {
   label: string;
   path: string;
   icon: string; // مفتاح أيقونة (انظر القالب)
-  phase: string;
   perm: string[]; // صلاحيات العرض المطلوبة (أيّ منها يكفي)
 }
 
@@ -38,12 +40,53 @@ interface NavItem {
   styleUrl: './shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
 
   readonly navOpen = signal(true);
   readonly userMenuOpen = signal(false);
+  readonly avatarUrl = signal<string | null>(null);
+  readonly photoError = signal<string | null>(null);
+  /** شعار وزارة العدل المرفوع؛ يسقط للختم المرسوم إن غاب الملف. */
+  readonly logoOk = signal(true);
+
+  ngOnInit(): void {
+    this.loadAvatar();
+  }
+
+  /** صورة المستخدم الحالي (إن وُجدت) عبر Blob لتمرير التوكن. */
+  private loadAvatar(): void {
+    this.http
+      .get(`${environment.apiBaseUrl}/me/photo`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => this.avatarUrl.set(URL.createObjectURL(blob)),
+        error: () => this.avatarUrl.set(null),
+      });
+  }
+
+  /** خدمة ذاتية: يغيّر المستخدم صورته الخاصة (POST /api/me/photo). */
+  onChangePhoto(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // يسمح باختيار الملف نفسه مجددًا
+    if (!file) return;
+
+    this.photoError.set(null);
+    const data = new FormData();
+    data.append('file', file);
+    this.http.post(`${environment.apiBaseUrl}/me/photo`, data).subscribe({
+      next: () => {
+        this.loadAvatar();
+        this.closeUserMenu();
+      },
+      error: (e: { error?: { detail?: string; message?: string } }) =>
+        this.photoError.set(
+          e?.error?.detail ?? e?.error?.message ?? 'تعذّر تغيير الصورة.',
+        ),
+    });
+  }
 
   private readonly changePwDlg =
     viewChild.required<ChangePasswordDialogComponent>('changePwDlg');
@@ -56,14 +99,14 @@ export class ShellComponent {
   readonly version = pkg.version;
 
   private readonly allNav: NavItem[] = [
-    { label: 'الرئيسية', path: '/dashboard', icon: 'home', phase: '', perm: [NavPermission.Dashboard] },
-    { label: 'الأصناف', path: '/items', icon: 'box', phase: '١', perm: [NavPermission.Items] },
-    { label: 'الحركات', path: '/movements', icon: 'transfer', phase: '٢', perm: [NavPermission.Vouchers] },
-    { label: 'العُهد والموافقات', path: '/approvals', icon: 'stamp', phase: '٣', perm: [NavPermission.Approvals] },
-    { label: 'الجرد والتنبيهات', path: '/inventory', icon: 'clipboard', phase: '٤', perm: [NavPermission.Alerts] },
-    { label: 'التقارير', path: '/reports', icon: 'chart', phase: '٥', perm: [NavPermission.Reports] },
-    { label: 'البيانات الأساسية', path: '/master-data', icon: 'database', phase: '', perm: ['Warehouses.View', 'Items.View', 'Employees.View'] },
-    { label: 'الإدارة والصلاحيات', path: '/admin', icon: 'shield', phase: '٦', perm: ['Users.View', 'Roles.View'] },
+    { label: 'الرئيسية', path: '/dashboard', icon: 'home', perm: [NavPermission.Dashboard] },
+    { label: 'الأصناف', path: '/items', icon: 'box', perm: [NavPermission.Items] },
+    { label: 'الحركات', path: '/movements', icon: 'transfer', perm: [NavPermission.Vouchers] },
+    { label: 'العُهد والموافقات', path: '/approvals', icon: 'stamp', perm: [NavPermission.Approvals] },
+    { label: 'الجرد والتنبيهات', path: '/inventory', icon: 'clipboard', perm: [NavPermission.Alerts] },
+    { label: 'التقارير', path: '/reports', icon: 'chart', perm: [NavPermission.Reports] },
+    { label: 'البيانات الأساسية', path: '/master-data', icon: 'database', perm: ['Warehouses.View', 'Items.View', 'Employees.View'] },
+    { label: 'الإدارة والصلاحيات', path: '/admin', icon: 'shield', perm: ['Users.View', 'Roles.View'] },
   ];
 
   /** التنقّل المرئي — مُصفّى حسب صلاحيات المستخدم (RBAC؛ أيّ صلاحية من القائمة تكفي). */

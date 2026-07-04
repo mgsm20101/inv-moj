@@ -30,7 +30,10 @@ public sealed record CreateVoucherCommand : ICommand<Result<Guid>>
     public Guid? SupplierId { get; init; }
     public Guid? SourceVoucherId { get; init; }
     public string? ReferenceNo { get; init; }
-    public string? CostCenter { get; init; }
+
+    /// <summary>تاريخ الإذن المرجعي (اختياري) — افتراضيًا اليوم. للبيانات التاريخية.</summary>
+    public DateOnly? DocumentDate { get; init; }
+
     public string? RequestingDept { get; init; }
     public string? Reason { get; init; }
     public Guid? RecipientEmployeeId { get; init; }

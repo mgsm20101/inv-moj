@@ -30,6 +30,19 @@ import { AdminService } from '../admin.service';
   standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './user-editor.component.html',
+  styles: [`
+    .photo-pick { display: flex; align-items: center; gap: var(--space-md); }
+    .photo-pick__img, .photo-pick__ph {
+      width: 64px; height: 64px; border-radius: 50%; flex: none;
+      object-fit: cover; border: 1px solid var(--border);
+    }
+    .photo-pick__ph {
+      display: grid; place-items: center;
+      background: var(--justice-soft); color: #14503f;
+    }
+    .photo-pick__ph svg { width: 32px; height: 32px; }
+    .photo-pick__btn { cursor: pointer; }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserEditorComponent implements OnInit {
@@ -53,6 +66,10 @@ export class UserEditorComponent implements OnInit {
   readonly roles = signal<RoleSummary[]>([]);
   readonly selectedRoles = signal<Set<string>>(new Set());
   readonly showResetPw = signal(false);
+
+  /** معاينة الصورة (ObjectURL) والملف المختار للرفع. */
+  readonly photoPreview = signal<string | null>(null);
+  private photoFile: File | null = null;
 
   readonly form = this.fb.nonNullable.group({
     userName: ['', [Validators.required, Validators.maxLength(64)]],
@@ -104,6 +121,12 @@ export class UserEditorComponent implements OnInit {
         // في التعديل: اسم الدخول وكلمة المرور لا يُعدَّلان عبر هذا النموذج.
         this.f.userName.disable();
         this.f.password.disable();
+        if (u.hasPhoto) {
+          this.service.getUserPhoto(id).subscribe({
+            next: (blob) => this.photoPreview.set(URL.createObjectURL(blob)),
+            error: () => {},
+          });
+        }
         this.loading.set(false);
         this.dlg().nativeElement.showModal();
       },
@@ -128,6 +151,26 @@ export class UserEditorComponent implements OnInit {
     return this.selectedRoles().has(id);
   }
 
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.photoFile = file;
+    this.photoPreview.set(URL.createObjectURL(file));
+  }
+
+  /** بعد حفظ بيانات المستخدم: يرفع الصورة إن اختِيرت ثم يُغلق. */
+  private afterSave(id: string): void {
+    if (this.photoFile) {
+      this.service.uploadUserPhoto(id, this.photoFile).subscribe({
+        next: () => this.finish(),
+        error: (e) => this.fail(e, 'حُفظ المستخدم لكن تعذّر رفع الصورة.'),
+      });
+    } else {
+      this.finish();
+    }
+  }
+
   // ---- الحفظ ----
   submit(): void {
     this.error.set(null);
@@ -149,7 +192,7 @@ export class UserEditorComponent implements OnInit {
           roleIds,
         })
         .subscribe({
-          next: () => this.finish(),
+          next: (id) => this.afterSave(id),
           error: (e) => this.fail(e, 'تعذّر إنشاء المستخدم.'),
         });
     } else {
@@ -160,7 +203,7 @@ export class UserEditorComponent implements OnInit {
         .subscribe({
           next: () =>
             this.service.assignRoles(id, roleIds).subscribe({
-              next: () => this.finish(),
+              next: () => this.afterSave(id),
               error: (e) => this.fail(e, 'حُفظت البيانات لكن تعذّر إسناد الأدوار.'),
             }),
           error: (e) => this.fail(e, 'تعذّر حفظ بيانات المستخدم.'),

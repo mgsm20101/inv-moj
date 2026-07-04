@@ -21,14 +21,27 @@ public sealed class IdentityAdminService(
 
     public async Task<IReadOnlyList<UserSummaryDto>> GetUsersAsync(CancellationToken ct)
     {
-        var users = await userManager.Users.AsNoTracking().OrderBy(u => u.UserName).ToListAsync(ct);
-        var result = new List<UserSummaryDto>(users.Count);
-        foreach (var u in users)
-        {
-            var roles = await userManager.GetRolesAsync(u);
-            result.Add(new UserSummaryDto(u.Id, u.UserName!, u.FullName, u.Email, u.IsActive, roles.ToList()));
-        }
-        return result;
+        // إسقاط صريح — لا نُحمّل بايتات الصورة في القائمة (HasPhoto فقط).
+        var users = await userManager.Users.AsNoTracking().OrderBy(u => u.UserName)
+            .Select(u => new
+            {
+                u.Id, u.UserName, u.FullName, u.Email, u.IsActive,
+                HasPhoto = u.PhotoData != null,
+            })
+            .ToListAsync(ct);
+
+        // أسماء الأدوار لكل مستخدم عبر ضمّة واحدة بدل N استعلامات.
+        var roleMap = await (
+            from ur in db.UserRoles
+            join r in db.Roles on ur.RoleId equals r.Id
+            where r.Name != null
+            select new { ur.UserId, RoleName = r.Name! }).ToListAsync(ct);
+        var rolesByUser = roleMap.GroupBy(x => x.UserId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.RoleName).ToList());
+
+        return users.Select(u => new UserSummaryDto(
+            u.Id, u.UserName!, u.FullName, u.Email, u.IsActive, u.HasPhoto,
+            rolesByUser.TryGetValue(u.Id, out var rl) ? rl : [])).ToList();
     }
 
     public async Task<Result<UserDetailDto>> GetUserAsync(Guid id, CancellationToken ct)
@@ -42,7 +55,8 @@ public sealed class IdentityAdminService(
             .Where(r => r.Name != null && roleNames.Contains(r.Name))
             .Select(r => r.Id).ToListAsync(ct);
 
-        return new UserDetailDto(user.Id, user.UserName!, user.FullName, user.Email, user.IsActive, roleIds, roleNames.ToList());
+        return new UserDetailDto(user.Id, user.UserName!, user.FullName, user.Email, user.IsActive,
+            user.PhotoData != null, roleIds, roleNames.ToList());
     }
 
     public async Task<Result<Guid>> CreateUserAsync(
@@ -149,6 +163,34 @@ public sealed class IdentityAdminService(
         }
         return Result.Success();
     }
+
+    // ═══════════════════════ صورة المستخدم ═══════════════════════
+
+    public async Task<Result> SetUserPhotoAsync(Guid id, byte[] data, string contentType, CancellationToken ct)
+    {
+        var user = await userManager.FindByIdAsync(id.ToString());
+        if (user is null) return Result.Failure(Error.NotFound("User", "المستخدم غير موجود."));
+
+        user.PhotoData = data;
+        user.PhotoContentType = contentType;
+        var update = await userManager.UpdateAsync(user);
+        return update.Succeeded ? Result.Success() : Result.Failure(ToError(update));
+    }
+
+    public async Task<UserPhotoDto?> GetUserPhotoAsync(Guid id, CancellationToken ct)
+    {
+        var photo = await db.Users.AsNoTracking().Where(u => u.Id == id)
+            .Select(u => new { u.PhotoData, u.PhotoContentType })
+            .FirstOrDefaultAsync(ct);
+
+        return photo?.PhotoData is { Length: > 0 } data
+            ? new UserPhotoDto(data, photo.PhotoContentType ?? "image/jpeg")
+            : null;
+    }
+
+    public Task<bool> UserHasPhotoAsync(Guid id, CancellationToken ct)
+        => db.Users.AsNoTracking().Where(u => u.Id == id)
+            .Select(u => u.PhotoData != null).FirstOrDefaultAsync(ct);
 
     // ═══════════════════════ الأدوار ═══════════════════════
 

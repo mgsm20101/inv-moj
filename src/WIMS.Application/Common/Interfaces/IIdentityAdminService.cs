@@ -21,6 +21,11 @@ public interface IIdentityAdminService
     Task<Result> SetUserRolesAsync(Guid id, IReadOnlyList<Guid> roleIds, CancellationToken ct);
     Task<Result> ChangeOwnPasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken ct);
 
+    // ── صورة المستخدم ──
+    Task<Result> SetUserPhotoAsync(Guid id, byte[] data, string contentType, CancellationToken ct);
+    Task<UserPhotoDto?> GetUserPhotoAsync(Guid id, CancellationToken ct);
+    Task<bool> UserHasPhotoAsync(Guid id, CancellationToken ct);
+
     // ── الأدوار ──
     Task<IReadOnlyList<RoleSummaryDto>> GetRolesAsync(CancellationToken ct);
     Task<Result<RoleDetailDto>> GetRoleAsync(Guid id, CancellationToken ct);
@@ -34,11 +39,14 @@ public interface IIdentityAdminService
 // ─────────────────────── نماذج العرض (DTOs) ───────────────────────
 
 public sealed record UserSummaryDto(
-    Guid Id, string UserName, string FullName, string? Email, bool IsActive, IReadOnlyList<string> Roles);
+    Guid Id, string UserName, string FullName, string? Email, bool IsActive, bool HasPhoto, IReadOnlyList<string> Roles);
 
 public sealed record UserDetailDto(
-    Guid Id, string UserName, string FullName, string? Email, bool IsActive,
+    Guid Id, string UserName, string FullName, string? Email, bool IsActive, bool HasPhoto,
     IReadOnlyList<Guid> RoleIds, IReadOnlyList<string> Roles);
+
+/// <summary>صورة المستخدم الخام + نوع المحتوى (لإرجاعها من endpoint).</summary>
+public sealed record UserPhotoDto(byte[] Data, string ContentType);
 
 public sealed record RoleSummaryDto(
     Guid Id, string Name, string? Description, int PermissionCount, int UserCount, bool IsSystem);

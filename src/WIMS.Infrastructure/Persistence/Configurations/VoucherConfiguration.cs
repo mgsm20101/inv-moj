@@ -17,7 +17,6 @@ public sealed class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
         builder.Property(v => v.AdjustmentType).HasConversion<byte>();
         builder.Property(v => v.TransferStatus).HasConversion<byte>();
         builder.Property(v => v.ReferenceNo).HasMaxLength(100);
-        builder.Property(v => v.CostCenter).HasMaxLength(100);
         builder.Property(v => v.RequestingDept).HasMaxLength(150);
         builder.Property(v => v.Reason).HasMaxLength(500);
         builder.Property(v => v.RejectReason).HasMaxLength(500);

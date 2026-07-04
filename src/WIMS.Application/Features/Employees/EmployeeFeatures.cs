@@ -11,12 +11,12 @@ namespace WIMS.Application.Features.Employees;
 
 public sealed record EmployeeDto(
     Guid Id, string EmployeeNo, string NationalId, string FullNameAr,
-    string Department, string CostCenter, string? Email, EmployeeStatus Status);
+    string Department, string? Email, EmployeeStatus Status);
 
 // تفاصيل كاملة (تشمل الحقول غير المعروضة في القائمة) لتعبئة نموذج التعديل.
 public sealed record EmployeeDetailDto(
     Guid Id, string EmployeeNo, string NationalId, string FullNameAr, string? FullNameEn,
-    string Department, string? JobTitle, string CostCenter, string? Email, string? Phone,
+    string Department, string? JobTitle, string? Email, string? Phone,
     Guid? UserId, EmployeeStatus Status);
 
 // ─────────────────────── إنشاء موظف ───────────────────────
@@ -28,7 +28,6 @@ public sealed record CreateEmployeeCommand : ICommand<Result<Guid>>
     public string? FullNameEn { get; init; }
     public string Department { get; init; } = string.Empty;
     public string? JobTitle { get; init; }
-    public string CostCenter { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public Guid? UserId { get; init; }
@@ -39,10 +38,9 @@ public sealed class CreateEmployeeValidator : AbstractValidator<CreateEmployeeCo
     public CreateEmployeeValidator()
     {
         RuleFor(x => x.EmployeeNo).NotEmpty().WithMessage("الرقم الوظيفي مطلوب.").MaximumLength(20);
-        RuleFor(x => x.NationalId).NotEmpty().Matches(@"^\d{10}$").WithMessage("الهوية الوطنية يجب أن تكون 10 أرقام.");
+        RuleFor(x => x.NationalId).NotEmpty().Matches(@"^\d{14}$").WithMessage("الرقم القومي يجب أن يكون 14 رقمًا.");
         RuleFor(x => x.FullNameAr).NotEmpty().WithMessage("اسم الموظف مطلوب.").MaximumLength(150);
         RuleFor(x => x.Department).NotEmpty().WithMessage("الإدارة مطلوبة.").MaximumLength(120);
-        RuleFor(x => x.CostCenter).NotEmpty().WithMessage("مركز التكلفة مطلوب.").MaximumLength(30);
         RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email))
             .WithMessage("صيغة البريد غير صحيحة.");
     }
@@ -57,14 +55,14 @@ public sealed class CreateEmployeeHandler(IAppDbContext db) : IRequestHandler<Cr
         if (await db.Employees.AnyAsync(e => e.EmployeeNo == no, ct))
             return Error.Conflict("Employee.No", $"الرقم الوظيفي '{no}' مستخدم مسبقاً.");
         if (await db.Employees.AnyAsync(e => e.NationalId == nid, ct))
-            return Error.Conflict("Employee.NationalId", $"الهوية '{nid}' مستخدمة مسبقاً.");
+            return Error.Conflict("Employee.NationalId", $"الرقم القومي '{nid}' مستخدم مسبقاً.");
 
         var employee = new Employee
         {
             EmployeeNo = no, NationalId = nid,
             FullNameAr = request.FullNameAr.Trim(), FullNameEn = request.FullNameEn?.Trim(),
             Department = request.Department.Trim(), JobTitle = request.JobTitle?.Trim(),
-            CostCenter = request.CostCenter.Trim(), Email = request.Email?.Trim(), Phone = request.Phone?.Trim(),
+            Email = request.Email?.Trim(), Phone = request.Phone?.Trim(),
             UserId = request.UserId, Status = EmployeeStatus.Active,
         };
         db.Employees.Add(employee);
@@ -81,7 +79,6 @@ public sealed record UpdateEmployeeCommand : ICommand<Result>
     public string? FullNameEn { get; init; }
     public string Department { get; init; } = string.Empty;
     public string? JobTitle { get; init; }
-    public string CostCenter { get; init; } = string.Empty;
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public Guid? UserId { get; init; }
@@ -94,7 +91,6 @@ public sealed class UpdateEmployeeValidator : AbstractValidator<UpdateEmployeeCo
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.FullNameAr).NotEmpty().WithMessage("اسم الموظف مطلوب.").MaximumLength(150);
         RuleFor(x => x.Department).NotEmpty().WithMessage("الإدارة مطلوبة.").MaximumLength(120);
-        RuleFor(x => x.CostCenter).NotEmpty().WithMessage("مركز التكلفة مطلوب.").MaximumLength(30);
         RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email))
             .WithMessage("صيغة البريد غير صحيحة.");
     }
@@ -111,7 +107,6 @@ public sealed class UpdateEmployeeHandler(IAppDbContext db) : IRequestHandler<Up
         e.FullNameEn = request.FullNameEn?.Trim();
         e.Department = request.Department.Trim();
         e.JobTitle = request.JobTitle?.Trim();
-        e.CostCenter = request.CostCenter.Trim();
         e.Email = request.Email?.Trim();
         e.Phone = request.Phone?.Trim();
         e.UserId = request.UserId;
@@ -134,7 +129,7 @@ public sealed class GetEmployeesHandler(IAppDbContext db) : IRequestHandler<GetE
             q = q.Where(e => e.EmployeeNo.Contains(term) || e.FullNameAr.Contains(term) || e.NationalId.Contains(term));
         }
         return await q.OrderBy(e => e.EmployeeNo)
-            .Select(e => new EmployeeDto(e.Id, e.EmployeeNo, e.NationalId, e.FullNameAr, e.Department, e.CostCenter, e.Email, e.Status))
+            .Select(e => new EmployeeDto(e.Id, e.EmployeeNo, e.NationalId, e.FullNameAr, e.Department, e.Email, e.Status))
             .ToListAsync(ct);
     }
 }
@@ -150,7 +145,7 @@ public sealed class GetEmployeeByIdHandler(IAppDbContext db) : IRequestHandler<G
             .Where(e => e.Id == request.Id)
             .Select(e => new EmployeeDetailDto(
                 e.Id, e.EmployeeNo, e.NationalId, e.FullNameAr, e.FullNameEn,
-                e.Department, e.JobTitle, e.CostCenter, e.Email, e.Phone, e.UserId, e.Status))
+                e.Department, e.JobTitle, e.Email, e.Phone, e.UserId, e.Status))
             .FirstOrDefaultAsync(ct);
 
         if (dto is null) return Error.NotFound("Employee", "الموظف غير موجود.");

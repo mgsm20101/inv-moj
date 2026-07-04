@@ -40,9 +40,10 @@
         @if (v.toWarehouseId) { → مخزن الوجهة }</dd></div>
       <div><dt>أنشأه</dt><dd>{{ v.createdBy || '—' }}</dd></div>
       <div><dt>اعتمده</dt><dd>{{ v.approvedBy || '—' }}</dd></div>
+      <div><dt>تاريخ الإذن</dt>
+        <dd class="num">{{ v.documentDate ? (v.documentDate | date: 'yyyy/MM/dd') : '—' }}</dd></div>
       <div><dt>تاريخ الترحيل</dt>
         <dd class="num">{{ v.postedAt ? (v.postedAt | date: 'yyyy/MM/dd HH:mm') : '—' }}</dd></div>
-      @if (v.costCenter) { <div><dt>مركز التكلفة</dt><dd>{{ v.costCenter }}</dd></div> }
       @if (v.reason) { <div class="v-meta__wide"><dt>السبب</dt><dd>{{ v.reason }}</dd></div> }
     </dl>
   </section>
@@ -69,8 +70,8 @@
             <th class="ta-end">#</th>
             <th>كود الصنف</th>
             <th class="ta-end">الكمية</th>
-            <th class="ta-end">تكلفة الوحدة</th>
-            <th class="ta-end">الإجمالي</th>
+            <th class="ta-end">تكلفة الوحدة (ج.م)</th>
+            <th class="ta-end">الإجمالي (ج.م)</th>
             <th>دفعة</th>
             <th>سيريال</th>
             <th>الصلاحية</th>
@@ -93,7 +94,7 @@
         <tfoot>
           <tr>
             <td colspan="4" class="ta-end foot-label">الإجمالي</td>
-            <td class="num ta-end foot-total">{{ totalCost() | number: '1.2-2' }}</td>
+            <td class="num ta-end foot-total">{{ totalCost() | number: '1.2-2' }} ج.م</td>
             <td colspan="3"></td>
           </tr>
         </tfoot>

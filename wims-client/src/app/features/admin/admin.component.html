@@ -64,7 +64,16 @@
             @for (u of users() ?? []; track u.id) {
               <tr>
                 <td class="num code">{{ u.userName }}</td>
-                <td>{{ u.fullName }}</td>
+                <td>
+                  <span class="cell-user">
+                    @if (userPhoto(u.id)) {
+                      <img class="cell-user__avatar" [src]="userPhoto(u.id)" alt="" />
+                    } @else {
+                      <span class="cell-user__avatar cell-user__avatar--ph" aria-hidden="true">{{ u.fullName.charAt(0) }}</span>
+                    }
+                    <span>{{ u.fullName }}</span>
+                  </span>
+                </td>
                 <td>
                   <span class="rolechips">
                     @for (r of u.roles; track r) { <span class="chip">{{ r }}</span> }

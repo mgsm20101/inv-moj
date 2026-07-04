@@ -7,6 +7,6 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- رقم الإصدار المرجعي — يُحدَّث فقط عند إعلان إصدار جديد (راجع CHANGELOG.md).
          أربعة مقاطع (Major.Minor.Build.Revision) بتقليد AssemblyVersion/FileVersion في .NET. -->
-    <Version>1.1.0.0</Version>
+    <Version>1.2.0.0</Version>
   </PropertyGroup>
 </Project>
