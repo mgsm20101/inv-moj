@@ -14,6 +14,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ## [Unreleased]
 
+### Fixed
+- `SecurityHeadersMiddleware`: the Content-Security-Policy header was `default-src 'none'`, written back when the API served JSON only. Once the Angular SPA started being served from the same origin (`wwwroot`), this silently blocked every script, stylesheet, and image on the live MonsterASP deployment — the site loaded `index.html` but rendered a blank page. Relaxed to `default-src 'self'` (+ `style-src 'unsafe-inline'` for Angular's inlined critical CSS), still same-origin-only with no external CDNs allowed.
+
 ### Added
 - `src/WIMS.WebApi/Properties/PublishProfiles/MonsterASP.pubxml`: WebDeploy publish profile (non-secret data only) + a new section in `DEPLOY-MonsterASP-AR.md` for direct command-line deployment via `dotnet publish /p:DeployOnBuild=true`.
 - `.gitignore`: excluded `*.publishSettings` (contains a real WebDeploy password when downloaded from the hosting control panel).
