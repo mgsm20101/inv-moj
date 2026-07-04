@@ -18,10 +18,20 @@ public sealed class EmployeesController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetAll([FromQuery] string? search, CancellationToken ct)
         => Ok(await sender.Send(new GetEmployeesQuery(search), ct));
 
+    [HttpGet("{id:guid}")]
+    [Authorize(Policy = PermissionKeys.Employees.View)]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+        => (await sender.Send(new GetEmployeeByIdQuery(id), ct)).ToActionResult();
+
     [HttpPost]
     [Authorize(Policy = PermissionKeys.Employees.Manage)]
     public async Task<IActionResult> Create([FromBody] CreateEmployeeCommand command, CancellationToken ct)
         => (await sender.Send(command, ct)).ToActionResult();
+
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = PermissionKeys.Employees.Manage)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateEmployeeCommand command, CancellationToken ct)
+        => (await sender.Send(command with { Id = id }, ct)).ToActionResult();
 
     [HttpPost("{id:guid}/status")]
     [Authorize(Policy = PermissionKeys.Employees.Manage)]

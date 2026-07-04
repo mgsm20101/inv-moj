@@ -7,7 +7,7 @@ namespace WIMS.Application.Features.Categories.GetCategories;
 
 public sealed record CategoryDto(
     Guid Id, string Code, string NameAr, string? NameEn,
-    Guid? ParentId, byte Level, string Path, bool IsActive, bool IsLeaf);
+    Guid? ParentId, byte Level, string Path, int SortOrder, bool IsActive, bool IsLeaf);
 
 public sealed record GetCategoriesQuery : IQuery<IReadOnlyList<CategoryDto>>;
 
@@ -20,13 +20,13 @@ public sealed class GetCategoriesQueryHandler(IAppDbContext db)
             .OrderBy(c => c.Path)
             .Select(c => new
             {
-                c.Id, c.Code, c.NameAr, c.NameEn, c.ParentId, c.Level, c.Path, c.IsActive,
+                c.Id, c.Code, c.NameAr, c.NameEn, c.ParentId, c.Level, c.Path, c.SortOrder, c.IsActive,
                 IsLeaf = !db.ItemCategories.Any(child => child.ParentId == c.Id),
             })
             .ToListAsync(cancellationToken);
 
         return categories
-            .Select(c => new CategoryDto(c.Id, c.Code, c.NameAr, c.NameEn, c.ParentId, c.Level, c.Path, c.IsActive, c.IsLeaf))
+            .Select(c => new CategoryDto(c.Id, c.Code, c.NameAr, c.NameEn, c.ParentId, c.Level, c.Path, c.SortOrder, c.IsActive, c.IsLeaf))
             .ToList();
     }
 }

@@ -140,6 +140,17 @@ export const routes: Routes = [
         title: 'التقارير · WIMS',
       },
       {
+        path: 'master-data',
+        canActivate: [
+          permissionGuard(['Warehouses.View', 'Items.View', 'Employees.View']),
+        ],
+        loadComponent: () =>
+          import('./features/master-data/master-data.component').then(
+            (m) => m.MasterDataComponent,
+          ),
+        title: 'البيانات الأساسية · WIMS',
+      },
+      {
         path: 'admin',
         canActivate: [permissionGuard(['Users.View', 'Roles.View'])],
         loadComponent: () =>

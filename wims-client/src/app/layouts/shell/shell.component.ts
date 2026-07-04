@@ -10,6 +10,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { AuthService } from '../../core/auth/auth.service';
 import { NavPermission } from '../../core/auth/permission-catalog';
 import { ChangePasswordDialogComponent } from '../../features/admin/change-password/change-password-dialog.component';
+import pkg from '../../../../package.json';
 
 interface NavItem {
   label: string;
@@ -51,6 +52,9 @@ export class ShellComponent {
   readonly primaryRole = computed(() => this.auth.roles()[0] ?? 'مستخدم');
   readonly initial = computed(() => (this.auth.userName() ?? '؟').charAt(0));
 
+  /** رقم الإصدار من package.json (المصدر الموحّد المُحدَّث في سير عمل الإصدارات). */
+  readonly version = pkg.version;
+
   private readonly allNav: NavItem[] = [
     { label: 'الرئيسية', path: '/dashboard', icon: 'home', phase: '', perm: [NavPermission.Dashboard] },
     { label: 'الأصناف', path: '/items', icon: 'box', phase: '١', perm: [NavPermission.Items] },
@@ -58,6 +62,7 @@ export class ShellComponent {
     { label: 'العُهد والموافقات', path: '/approvals', icon: 'stamp', phase: '٣', perm: [NavPermission.Approvals] },
     { label: 'الجرد والتنبيهات', path: '/inventory', icon: 'clipboard', phase: '٤', perm: [NavPermission.Alerts] },
     { label: 'التقارير', path: '/reports', icon: 'chart', phase: '٥', perm: [NavPermission.Reports] },
+    { label: 'البيانات الأساسية', path: '/master-data', icon: 'database', phase: '', perm: ['Warehouses.View', 'Items.View', 'Employees.View'] },
     { label: 'الإدارة والصلاحيات', path: '/admin', icon: 'shield', phase: '٦', perm: ['Users.View', 'Roles.View'] },
   ];
 

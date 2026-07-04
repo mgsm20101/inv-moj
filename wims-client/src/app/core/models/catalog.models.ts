@@ -65,6 +65,7 @@ export interface CategoryDto {
   parentId: string | null;
   level: number;
   path: string;
+  sortOrder: number;
   isActive: boolean;
   isLeaf: boolean;
 }
